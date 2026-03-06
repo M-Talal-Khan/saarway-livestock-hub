@@ -33,9 +33,13 @@ import { erpStations } from '@/data/erp/erpStations';
 const stationNames = erpStations.map(s => s.name);
 
 const FeedInventory = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, currentStation } = useAuth();
   const role = currentUser?.role || 'Admin';
+  const isAdmin = role === 'Admin';
+  const isManager = role === 'Manager';
   const isWorker = role === 'Worker';
+  const isStationLocked = isManager || isWorker;
+  const assignedStation = currentStation?.name || stationNames[0];
 
   const [feedItemsList, setFeedItemsList] = useState<FeedItem[]>(initialFeedItems);
   const [stationStocksState, setStationStocksState] = useState<Record<string, StationStock[]>>(JSON.parse(JSON.stringify(initialStationStocks)));
@@ -58,8 +62,15 @@ const FeedInventory = () => {
   // Delete confirmation
   const [deleteModal, setDeleteModal] = useState<{ type: 'feed' | 'consumption'; id: number } | null>(null);
 
-  // Stock management filters
-  const [selectedStation, setSelectedStation] = useState<string>('all');
+  // Stock management filters — locked for non-admin
+  const [selectedStation, setSelectedStation] = useState<string>(isStationLocked ? assignedStation : 'all');
+
+  // Derived: which stations to show data for
+  const effectiveStations = isStationLocked ? [assignedStation] : (selectedStation === 'all' ? stationNames : [selectedStation]);
+
+  // Filter consumption & stock history by station for locked roles
+  const filteredConsumption = isStationLocked ? consumptionState.filter(c => c.station === assignedStation) : consumptionState;
+  const filteredStockHistory = isStationLocked ? stockHistoryState.filter(e => e.station === assignedStation) : stockHistoryState;
 
   const openAddFeed = () => {
     setEditingFeed(null);
@@ -209,7 +220,6 @@ const FeedInventory = () => {
     return 'bg-primary';
   };
 
-  const filteredStations = selectedStation === 'all' ? stationNames : [selectedStation];
   const activeFeeds = feedItemsList.filter(f => f.status === 'Active');
 
   return (
@@ -280,20 +290,27 @@ const FeedInventory = () => {
         {!isWorker && (
           <TabsContent value="stock" className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <Select value={selectedStation} onValueChange={setSelectedStation}>
-                <SelectTrigger className="w-full sm:w-[280px]"><SelectValue placeholder="Select Station" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Stations</SelectItem>
-                  {stationNames.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Button onClick={() => { setStockForm({ station: '', feedItem: '', quantity: '', date: new Date(), source: '', cost: '' }); setStockModal(true); }} className="gap-1.5">
+             {isAdmin ? (
+               <Select value={selectedStation} onValueChange={setSelectedStation}>
+                 <SelectTrigger className="w-full sm:w-[280px]"><SelectValue placeholder="Select Station" /></SelectTrigger>
+                 <SelectContent>
+                   <SelectItem value="all">All Stations</SelectItem>
+                   {stationNames.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                 </SelectContent>
+               </Select>
+             ) : (
+               <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                 <Package className="h-4 w-4 text-primary" />
+                 {assignedStation}
+               </div>
+             )}
+              <Button onClick={() => { setStockForm({ station: isStationLocked ? assignedStation : '', feedItem: '', quantity: '', date: new Date(), source: '', cost: '' }); setStockModal(true); }} className="gap-1.5">
                 <Plus className="h-4 w-4" />Add Stock
               </Button>
             </div>
 
             {/* Stock Overview Cards */}
-            {filteredStations.map(station => {
+            {effectiveStations.map(station => {
               const stocks = stationStocksState[station] || [];
               return (
                 <div key={station} className="space-y-3">
@@ -348,7 +365,7 @@ const FeedInventory = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {stockHistoryState.map(e => (
+                    {filteredStockHistory.map(e => (
                       <TableRow key={e.id}>
                         <TableCell>{e.date}</TableCell>
                         <TableCell className="font-medium">{e.feedItem}</TableCell>
@@ -373,7 +390,7 @@ const FeedInventory = () => {
         {/* ── TAB 3: Consumption Log ── */}
         <TabsContent value="consumption" className="space-y-4">
           <div className="flex justify-end">
-            <Button onClick={() => { setConsumeForm({ station: '', feedItem: '', quantity: '', date: new Date(), loggedBy: currentUser?.fullName || '' }); setConsumeModal(true); }} className="gap-1.5">
+            <Button onClick={() => { setConsumeForm({ station: isStationLocked ? assignedStation : '', feedItem: '', quantity: '', date: new Date(), loggedBy: currentUser?.fullName || '' }); setConsumeModal(true); }} className="gap-1.5">
               <Plus className="h-4 w-4" />Log Consumption
             </Button>
           </div>
@@ -391,7 +408,7 @@ const FeedInventory = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {consumptionState.map(c => (
+                {filteredConsumption.map(c => (
                   <TableRow key={c.id}>
                     <TableCell>{c.date}</TableCell>
                     <TableCell>{c.station}</TableCell>
@@ -472,10 +489,14 @@ const FeedInventory = () => {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Station</Label>
-              <Select value={stockForm.station} onValueChange={v => setStockForm(p => ({ ...p, station: v }))}>
-                <SelectTrigger><SelectValue placeholder="Select station" /></SelectTrigger>
-                <SelectContent>{stationNames.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-              </Select>
+              {isStationLocked ? (
+                <Input value={assignedStation} disabled />
+              ) : (
+                <Select value={stockForm.station} onValueChange={v => setStockForm(p => ({ ...p, station: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Select station" /></SelectTrigger>
+                  <SelectContent>{stationNames.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                </Select>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Feed Item</Label>
@@ -534,10 +555,14 @@ const FeedInventory = () => {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Station</Label>
-              <Select value={consumeForm.station} onValueChange={v => setConsumeForm(p => ({ ...p, station: v }))}>
-                <SelectTrigger><SelectValue placeholder="Select station" /></SelectTrigger>
-                <SelectContent>{stationNames.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-              </Select>
+              {isStationLocked ? (
+                <Input value={assignedStation} disabled />
+              ) : (
+                <Select value={consumeForm.station} onValueChange={v => setConsumeForm(p => ({ ...p, station: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Select station" /></SelectTrigger>
+                  <SelectContent>{stationNames.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                </Select>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Feed Item</Label>
