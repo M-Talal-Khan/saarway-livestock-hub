@@ -26,24 +26,7 @@ const PIE_GRADIENTS = [
   { id: 'rPieGrey', from: '#9ca3af', to: '#6b7280' },
 ];
 
-const ChartDefs = () => (
-  <defs>
-    <linearGradient id="rGreenBar" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stopColor="#4ad88a" stopOpacity={1} />
-      <stop offset="100%" stopColor="#1f9e1f" stopOpacity={0.8} />
-    </linearGradient>
-    <linearGradient id="rGreenArea" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stopColor="#3db83d" stopOpacity={0.3} />
-      <stop offset="100%" stopColor="#3db83d" stopOpacity={0.02} />
-    </linearGradient>
-    {PIE_GRADIENTS.map(g => (
-      <linearGradient key={g.id} id={g.id} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor={g.from} stopOpacity={1} />
-        <stop offset="100%" stopColor={g.to} stopOpacity={0.85} />
-      </linearGradient>
-    ))}
-  </defs>
-);
+// Inline defs used directly inside each chart (not as a component)
 
 const statusBreakdown = [
   { name: 'Active', value: cattle.filter(c => c.status === 'Active').length },
@@ -95,8 +78,15 @@ const Reports = () => (
             <CardHeader className="pb-2"><CardTitle className="text-base">Status Breakdown</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={260}>
-                <PieChart>
-                  <ChartDefs />
+               <PieChart>
+                  <defs>
+                    {PIE_GRADIENTS.map(g => (
+                      <linearGradient key={g.id} id={g.id} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={g.from} stopOpacity={1} />
+                        <stop offset="100%" stopColor={g.to} stopOpacity={0.85} />
+                      </linearGradient>
+                    ))}
+                  </defs>
                   <Pie data={statusBreakdown} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={95} paddingAngle={3} cornerRadius={6} stroke="#fff" strokeWidth={3} label animationDuration={1200} style={{ filter: 'drop-shadow(2px 4px 8px rgba(0,0,0,0.12))' }}>
                     {statusBreakdown.map((_, i) => <Cell key={i} fill={`url(#${PIE_GRADIENTS[i % PIE_GRADIENTS.length].id})`} />)}
                   </Pie>
@@ -109,8 +99,13 @@ const Reports = () => (
             <CardHeader className="pb-2"><CardTitle className="text-base">Total Animals Over Time</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={260}>
-                <AreaChart data={animalTimeline}>
-                  <ChartDefs />
+              <AreaChart data={animalTimeline}>
+                  <defs>
+                    <linearGradient id="rGreenArea" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#3db83d" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="#3db83d" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsla(120,46%,62%,0.15)" />
                   <XAxis dataKey="m" fontSize={12} /><YAxis fontSize={12} />
                   <Tooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR} />
@@ -131,7 +126,12 @@ const Reports = () => (
           <CardContent>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={monthlyRevenue}>
-                <ChartDefs />
+                <defs>
+                  <linearGradient id="rGreenBar" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#4ad88a" stopOpacity={1} />
+                    <stop offset="100%" stopColor="#1f9e1f" stopOpacity={0.8} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsla(120,46%,62%,0.15)" />
                 <XAxis dataKey="month" fontSize={12} /><YAxis fontSize={12} />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR} />

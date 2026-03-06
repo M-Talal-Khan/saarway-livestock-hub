@@ -77,29 +77,7 @@ const WelcomeBanner = () => {
   );
 };
 
-const ChartDefs = () => (
-  <defs>
-    <linearGradient id="greenBar" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stopColor="#4ad88a" stopOpacity={1} />
-      <stop offset="100%" stopColor="#1f9e1f" stopOpacity={0.8} />
-    </linearGradient>
-    <linearGradient id="goldBar" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stopColor="#f5d87a" stopOpacity={1} />
-      <stop offset="100%" stopColor="#d4a934" stopOpacity={0.8} />
-    </linearGradient>
-    <linearGradient id="greenArea" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stopColor="#3db83d" stopOpacity={0.3} />
-      <stop offset="100%" stopColor="#3db83d" stopOpacity={0.02} />
-    </linearGradient>
-    <linearGradient id="redBar" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stopColor="#e85858" stopOpacity={1} />
-      <stop offset="100%" stopColor="#b91c1c" stopOpacity={0.8} />
-    </linearGradient>
-    <filter id="barShadow" x="-10%" y="-10%" width="120%" height="130%">
-      <feDropShadow dx="2" dy="4" stdDeviation="3" floodOpacity="0.15" />
-    </filter>
-  </defs>
-);
+// Inline defs - used directly inside each chart, not as a component
 
 const PIE_GRADIENTS = [
   { id: 'pieGreen', from: '#3db83d', to: '#1f9e1f' },
@@ -110,19 +88,7 @@ const PIE_GRADIENTS = [
   { id: 'pieRed', from: '#e85858', to: '#b91c1c' },
 ];
 
-const PieDefs = () => (
-  <defs>
-    {PIE_GRADIENTS.map(g => (
-      <linearGradient key={g.id} id={g.id} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor={g.from} stopOpacity={1} />
-        <stop offset="100%" stopColor={g.to} stopOpacity={0.85} />
-      </linearGradient>
-    ))}
-    <filter id="pieShadow">
-      <feDropShadow dx="2" dy="4" stdDeviation="4" floodOpacity="0.12" />
-    </filter>
-  </defs>
-);
+// Inline pie defs - used directly inside each PieChart
 
 const AdminDashboard = () => {
   const totalAnimals = cattle.length;
@@ -149,7 +115,12 @@ const AdminDashboard = () => {
           <CardContent>
             <ResponsiveContainer width="100%" height={260}>
               <AreaChart data={weightTrend}>
-                <ChartDefs />
+                <defs>
+                  <linearGradient id="greenArea" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#3db83d" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#3db83d" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsla(120,46%,62%,0.15)" />
                 <XAxis dataKey="day" fontSize={12} />
                 <YAxis fontSize={12} />
@@ -164,7 +135,16 @@ const AdminDashboard = () => {
           <CardContent>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={revenueData}>
-                <ChartDefs />
+                <defs>
+                  <linearGradient id="greenBar" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#4ad88a" stopOpacity={1} />
+                    <stop offset="100%" stopColor="#1f9e1f" stopOpacity={0.8} />
+                  </linearGradient>
+                  <linearGradient id="goldBar" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#f5d87a" stopOpacity={1} />
+                    <stop offset="100%" stopColor="#d4a934" stopOpacity={0.8} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsla(120,46%,62%,0.15)" />
                 <XAxis dataKey="month" fontSize={12} />
                 <YAxis fontSize={12} />
@@ -262,7 +242,14 @@ const AccountsDashboard = () => {
           <CardContent>
             <ResponsiveContainer width="100%" height={260}>
               <PieChart>
-                <PieDefs />
+                <defs>
+                  {PIE_GRADIENTS.map(g => (
+                    <linearGradient key={g.id} id={g.id} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={g.from} stopOpacity={1} />
+                      <stop offset="100%" stopColor={g.to} stopOpacity={0.85} />
+                    </linearGradient>
+                  ))}
+                </defs>
                 <Pie data={expenseCategories} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={95} paddingAngle={3} cornerRadius={6} stroke="#fff" strokeWidth={3} label={({ name }) => name} animationDuration={1200} style={{ filter: 'drop-shadow(2px 4px 8px rgba(0,0,0,0.12))' }}>
                   {expenseCategories.map((_, i) => <Cell key={i} fill={`url(#${PIE_GRADIENTS[i % PIE_GRADIENTS.length].id})`} />)}
                 </Pie>
@@ -276,13 +263,22 @@ const AccountsDashboard = () => {
           <CardContent>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={revenueData}>
-                <ChartDefs />
+                <defs>
+                  <linearGradient id="greenBar2" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#4ad88a" stopOpacity={1} />
+                    <stop offset="100%" stopColor="#1f9e1f" stopOpacity={0.8} />
+                  </linearGradient>
+                  <linearGradient id="goldBar2" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#f5d87a" stopOpacity={1} />
+                    <stop offset="100%" stopColor="#d4a934" stopOpacity={0.8} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsla(120,46%,62%,0.15)" />
                 <XAxis dataKey="month" fontSize={12} />
                 <YAxis fontSize={12} />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR} />
-                <Bar dataKey="revenue" fill="url(#greenBar)" radius={[8, 8, 0, 0]} animationDuration={1200} style={{ filter: 'drop-shadow(2px 4px 6px rgba(0,0,0,0.15))' }} />
-                <Bar dataKey="expenses" fill="url(#goldBar)" radius={[8, 8, 0, 0]} animationDuration={1200} style={{ filter: 'drop-shadow(2px 4px 6px rgba(0,0,0,0.15))' }} />
+                <Bar dataKey="revenue" fill="url(#greenBar2)" radius={[8, 8, 0, 0]} animationDuration={1200} style={{ filter: 'drop-shadow(2px 4px 6px rgba(0,0,0,0.15))' }} />
+                <Bar dataKey="expenses" fill="url(#goldBar2)" radius={[8, 8, 0, 0]} animationDuration={1200} style={{ filter: 'drop-shadow(2px 4px 6px rgba(0,0,0,0.15))' }} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
