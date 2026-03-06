@@ -9,6 +9,40 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Info, ChevronDown, DollarSign, Home, TrendingUp, TrendingDown } from 'lucide-react';
 
+const CHART_TOOLTIP_STYLE = {
+  background: 'white', border: 'none', borderRadius: '12px',
+  boxShadow: '0 8px 24px rgba(0,0,0,0.12)', borderTop: '3px solid hsl(120,50%,48%)', padding: '12px 16px',
+};
+const CHART_CURSOR = { fill: 'rgba(61,184,61,0.06)' };
+
+const PIE_GRADIENTS = [
+  { id: 'fPieGreen', from: '#3db83d', to: '#1f9e1f' },
+  { id: 'fPieGold', from: '#f5d87a', to: '#d4a934' },
+  { id: 'fPieRed', from: '#e85858', to: '#b91c1c' },
+  { id: 'fPieSky', from: '#4dc8e8', to: '#2a9ec0' },
+  { id: 'fPieDarkGreen', from: '#2d8a2d', to: '#1a5c1a' },
+  { id: 'fPieLight', from: '#a7f3d0', to: '#6ee7b7' },
+];
+
+const ChartDefs = () => (
+  <defs>
+    <linearGradient id="fGreenBar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stopColor="#4ad88a" stopOpacity={1} />
+      <stop offset="100%" stopColor="#1f9e1f" stopOpacity={0.8} />
+    </linearGradient>
+    <linearGradient id="fGoldBar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stopColor="#f5d87a" stopOpacity={1} />
+      <stop offset="100%" stopColor="#d4a934" stopOpacity={0.8} />
+    </linearGradient>
+    {PIE_GRADIENTS.map(g => (
+      <linearGradient key={g.id} id={g.id} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor={g.from} stopOpacity={1} />
+        <stop offset="100%" stopColor={g.to} stopOpacity={0.85} />
+      </linearGradient>
+    ))}
+  </defs>
+);
+
 const revenueData = [
   { month: 'Sep', income: 320000, expenses: 280000 },
   { month: 'Oct', income: 450000, expenses: 520000 },
@@ -19,12 +53,12 @@ const revenueData = [
 ];
 
 const expenseCategories = [
-  { name: 'Cattle Purchase', value: 1587850, color: 'hsl(120,50%,48%)' },
-  { name: 'Feed', value: 35000, color: 'hsl(44,76%,60%)' },
-  { name: 'Medical', value: 1500, color: 'hsl(0,76%,63%)' },
-  { name: 'Salary', value: 90000, color: 'hsl(192,72%,60%)' },
-  { name: 'Rent', value: 45000, color: 'hsl(120,67%,37%)' },
-  { name: 'Marketplace', value: 100, color: 'hsl(120,50%,90%)' },
+  { name: 'Cattle Purchase', value: 1587850 },
+  { name: 'Feed', value: 35000 },
+  { name: 'Medical', value: 1500 },
+  { name: 'Salary', value: 90000 },
+  { name: 'Rent', value: 45000 },
+  { name: 'Marketplace', value: 100 },
 ];
 
 const salaryData = [
@@ -56,7 +90,6 @@ const FinanceRent = () => {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-foreground">Finance & Rent</h1>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {statCards.map(s => (
           <Card key={s.label} className={`${s.border} hover:-translate-y-1`}>
@@ -73,19 +106,19 @@ const FinanceRent = () => {
         ))}
       </div>
 
-      {/* Mini Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-base">Income vs Expenses</CardTitle></CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={260}>
               <BarChart data={revenueData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsla(120,46%,62%,0.2)" />
+                <ChartDefs />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsla(120,46%,62%,0.15)" />
                 <XAxis dataKey="month" fontSize={12} />
                 <YAxis fontSize={12} />
-                <Tooltip />
-                <Bar dataKey="income" fill="hsl(120,50%,48%)" radius={[4,4,0,0]} animationDuration={800} />
-                <Bar dataKey="expenses" fill="hsl(44,76%,60%)" radius={[4,4,0,0]} animationDuration={800} />
+                <Tooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR} />
+                <Bar dataKey="income" fill="url(#fGreenBar)" radius={[8,8,0,0]} animationDuration={1200} style={{ filter: 'drop-shadow(2px 4px 6px rgba(0,0,0,0.15))' }} />
+                <Bar dataKey="expenses" fill="url(#fGoldBar)" radius={[8,8,0,0]} animationDuration={1200} style={{ filter: 'drop-shadow(2px 4px 6px rgba(0,0,0,0.15))' }} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -93,19 +126,19 @@ const FinanceRent = () => {
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-base">Top Expenses</CardTitle></CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={260}>
               <PieChart>
-                <Pie data={expenseCategories} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75} label={({ name }) => name} animationDuration={800}>
-                  {expenseCategories.map((e, i) => <Cell key={i} fill={e.color} />)}
+                <ChartDefs />
+                <Pie data={expenseCategories} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={95} paddingAngle={3} cornerRadius={6} stroke="#fff" strokeWidth={3} label={({ name }) => name} animationDuration={1200} style={{ filter: 'drop-shadow(2px 4px 8px rgba(0,0,0,0.12))' }}>
+                  {expenseCategories.map((_, i) => <Cell key={i} fill={`url(#${PIE_GRADIENTS[i % PIE_GRADIENTS.length].id})`} />)}
                 </Pie>
-                <Tooltip />
+                <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
 
-      {/* Auto-Integration Info */}
       <Collapsible>
         <CollapsibleTrigger asChild>
           <Card className="cursor-pointer">
@@ -143,45 +176,37 @@ const FinanceRent = () => {
         </TabsList>
 
         <TabsContent value="expenses">
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader><TableRow>
-                  <TableHead>Date</TableHead><TableHead>Category</TableHead><TableHead>Description</TableHead><TableHead>Station</TableHead><TableHead className="text-right">Amount</TableHead>
-                </TableRow></TableHeader>
-                <TableBody>
-                  {expenses.map(t => (
-                    <TableRow key={t.id}>
-                      <TableCell>{t.date}</TableCell><TableCell><StatusBadge status={t.category} /></TableCell>
-                      <TableCell className="text-sm">{t.description}</TableCell><TableCell>{t.station}</TableCell>
-                      <TableCell className="text-right font-medium text-destructive">-PKR {t.amount.toLocaleString()}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          <Card><CardContent className="p-0">
+            <Table>
+              <TableHeader><TableRow>
+                <TableHead>Date</TableHead><TableHead>Category</TableHead><TableHead>Description</TableHead><TableHead>Station</TableHead><TableHead className="text-right">Amount</TableHead>
+              </TableRow></TableHeader>
+              <TableBody>{expenses.map(t => (
+                <TableRow key={t.id}>
+                  <TableCell>{t.date}</TableCell><TableCell><StatusBadge status={t.category} /></TableCell>
+                  <TableCell className="text-sm">{t.description}</TableCell><TableCell>{t.station}</TableCell>
+                  <TableCell className="text-right font-medium text-destructive">-PKR {t.amount.toLocaleString()}</TableCell>
+                </TableRow>
+              ))}</TableBody>
+            </Table>
+          </CardContent></Card>
         </TabsContent>
 
         <TabsContent value="income">
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader><TableRow>
-                  <TableHead>Date</TableHead><TableHead>Source</TableHead><TableHead>Description</TableHead><TableHead>Station</TableHead><TableHead className="text-right">Amount</TableHead>
-                </TableRow></TableHeader>
-                <TableBody>
-                  {income.map(t => (
-                    <TableRow key={t.id}>
-                      <TableCell>{t.date}</TableCell><TableCell>{t.category}</TableCell>
-                      <TableCell className="text-sm">{t.description}</TableCell><TableCell>{t.station}</TableCell>
-                      <TableCell className="text-right font-medium text-sw-green-700">+PKR {t.amount.toLocaleString()}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          <Card><CardContent className="p-0">
+            <Table>
+              <TableHeader><TableRow>
+                <TableHead>Date</TableHead><TableHead>Source</TableHead><TableHead>Description</TableHead><TableHead>Station</TableHead><TableHead className="text-right">Amount</TableHead>
+              </TableRow></TableHeader>
+              <TableBody>{income.map(t => (
+                <TableRow key={t.id}>
+                  <TableCell>{t.date}</TableCell><TableCell>{t.category}</TableCell>
+                  <TableCell className="text-sm">{t.description}</TableCell><TableCell>{t.station}</TableCell>
+                  <TableCell className="text-right font-medium text-sw-green-700">+PKR {t.amount.toLocaleString()}</TableCell>
+                </TableRow>
+              ))}</TableBody>
+            </Table>
+          </CardContent></Card>
         </TabsContent>
 
         <TabsContent value="rent">
@@ -211,24 +236,20 @@ const FinanceRent = () => {
         </TabsContent>
 
         <TabsContent value="salary">
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader><TableRow>
-                  <TableHead>Name</TableHead><TableHead>Role</TableHead><TableHead>Amount</TableHead><TableHead>Month</TableHead><TableHead>Date</TableHead><TableHead>Station</TableHead>
-                </TableRow></TableHeader>
-                <TableBody>
-                  {salaryData.map((s, i) => (
-                    <TableRow key={i}>
-                      <TableCell className="font-medium">{s.name}</TableCell><TableCell>{s.role}</TableCell>
-                      <TableCell className="font-medium">PKR {s.amount.toLocaleString()}</TableCell>
-                      <TableCell>{s.month}</TableCell><TableCell>{s.date}</TableCell><TableCell>{s.station}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          <Card><CardContent className="p-0">
+            <Table>
+              <TableHeader><TableRow>
+                <TableHead>Name</TableHead><TableHead>Role</TableHead><TableHead>Amount</TableHead><TableHead>Month</TableHead><TableHead>Date</TableHead><TableHead>Station</TableHead>
+              </TableRow></TableHeader>
+              <TableBody>{salaryData.map((s, i) => (
+                <TableRow key={i}>
+                  <TableCell className="font-medium">{s.name}</TableCell><TableCell>{s.role}</TableCell>
+                  <TableCell className="font-medium">PKR {s.amount.toLocaleString()}</TableCell>
+                  <TableCell>{s.month}</TableCell><TableCell>{s.date}</TableCell><TableCell>{s.station}</TableCell>
+                </TableRow>
+              ))}</TableBody>
+            </Table>
+          </CardContent></Card>
         </TabsContent>
       </Tabs>
     </div>

@@ -7,9 +7,20 @@ import { treatments } from '@/data/erp/treatments';
 import { transactions } from '@/data/erp/transactions';
 import StatusBadge from '@/components/erp/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Beef, DollarSign, Syringe, AlertTriangle, Home, Activity } from 'lucide-react';
 import { format } from 'date-fns';
+
+const CHART_TOOLTIP_STYLE = {
+  background: 'white',
+  border: 'none',
+  borderRadius: '12px',
+  boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+  borderTop: '3px solid hsl(120,50%,48%)',
+  padding: '12px 16px',
+};
+
+const CHART_CURSOR = { fill: 'rgba(61,184,61,0.06)' };
 
 const revenueData = [
   { month: 'Sep', revenue: 320000, expenses: 280000 },
@@ -66,6 +77,53 @@ const WelcomeBanner = () => {
   );
 };
 
+const ChartDefs = () => (
+  <defs>
+    <linearGradient id="greenBar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stopColor="#4ad88a" stopOpacity={1} />
+      <stop offset="100%" stopColor="#1f9e1f" stopOpacity={0.8} />
+    </linearGradient>
+    <linearGradient id="goldBar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stopColor="#f5d87a" stopOpacity={1} />
+      <stop offset="100%" stopColor="#d4a934" stopOpacity={0.8} />
+    </linearGradient>
+    <linearGradient id="greenArea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stopColor="#3db83d" stopOpacity={0.3} />
+      <stop offset="100%" stopColor="#3db83d" stopOpacity={0.02} />
+    </linearGradient>
+    <linearGradient id="redBar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stopColor="#e85858" stopOpacity={1} />
+      <stop offset="100%" stopColor="#b91c1c" stopOpacity={0.8} />
+    </linearGradient>
+    <filter id="barShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="2" dy="4" stdDeviation="3" floodOpacity="0.15" />
+    </filter>
+  </defs>
+);
+
+const PIE_GRADIENTS = [
+  { id: 'pieGreen', from: '#3db83d', to: '#1f9e1f' },
+  { id: 'pieGold', from: '#f5d87a', to: '#d4a934' },
+  { id: 'pieSky', from: '#4dc8e8', to: '#2a9ec0' },
+  { id: 'piePurple', from: '#8b5cf6', to: '#6d28d9' },
+  { id: 'pieOrange', from: '#f97316', to: '#c2410c' },
+  { id: 'pieRed', from: '#e85858', to: '#b91c1c' },
+];
+
+const PieDefs = () => (
+  <defs>
+    {PIE_GRADIENTS.map(g => (
+      <linearGradient key={g.id} id={g.id} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor={g.from} stopOpacity={1} />
+        <stop offset="100%" stopColor={g.to} stopOpacity={0.85} />
+      </linearGradient>
+    ))}
+    <filter id="pieShadow">
+      <feDropShadow dx="2" dy="4" stdDeviation="4" floodOpacity="0.12" />
+    </filter>
+  </defs>
+);
+
 const AdminDashboard = () => {
   const totalAnimals = cattle.length;
   const activeListings = cattle.filter(c => c.status === 'Listed').length;
@@ -89,28 +147,30 @@ const AdminDashboard = () => {
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-base">Weight Growth Trend</CardTitle></CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={240}>
-              <LineChart data={weightTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsla(120,46%,62%,0.2)" />
+            <ResponsiveContainer width="100%" height={260}>
+              <AreaChart data={weightTrend}>
+                <ChartDefs />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsla(120,46%,62%,0.15)" />
                 <XAxis dataKey="day" fontSize={12} />
                 <YAxis fontSize={12} />
-                <Tooltip />
-                <Line type="monotone" dataKey="avg" stroke="hsl(120,50%,48%)" strokeWidth={2} animationDuration={800} />
-              </LineChart>
+                <Tooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR} />
+                <Area type="monotone" dataKey="avg" stroke="#3db83d" strokeWidth={3} fill="url(#greenArea)" dot={{ r: 5, fill: '#3db83d', stroke: '#fff', strokeWidth: 2 }} activeDot={{ r: 7, fill: '#1f9e1f', stroke: '#fff', strokeWidth: 3 }} animationDuration={1200} />
+              </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-base">Revenue vs Expenses</CardTitle></CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={240}>
+            <ResponsiveContainer width="100%" height={260}>
               <BarChart data={revenueData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsla(120,46%,62%,0.2)" />
+                <ChartDefs />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsla(120,46%,62%,0.15)" />
                 <XAxis dataKey="month" fontSize={12} />
                 <YAxis fontSize={12} />
-                <Tooltip />
-                <Bar dataKey="revenue" fill="hsl(120,50%,48%)" radius={[4, 4, 0, 0]} animationDuration={800} />
-                <Bar dataKey="expenses" fill="hsl(44,76%,60%)" radius={[4, 4, 0, 0]} animationDuration={800} />
+                <Tooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR} />
+                <Bar dataKey="revenue" fill="url(#greenBar)" radius={[8, 8, 0, 0]} animationDuration={1200} style={{ filter: 'drop-shadow(2px 4px 6px rgba(0,0,0,0.15))' }} />
+                <Bar dataKey="expenses" fill="url(#goldBar)" radius={[8, 8, 0, 0]} animationDuration={1200} style={{ filter: 'drop-shadow(2px 4px 6px rgba(0,0,0,0.15))' }} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -181,12 +241,12 @@ const VetDashboard = () => {
 
 const AccountsDashboard = () => {
   const expenseCategories = [
-    { name: 'Cattle Purchase', value: 1587850, color: 'hsl(120,50%,48%)' },
-    { name: 'Feed', value: 35000, color: 'hsl(44,76%,60%)' },
-    { name: 'Medical', value: 1500, color: 'hsl(0,76%,63%)' },
-    { name: 'Salary', value: 90000, color: 'hsl(192,72%,60%)' },
-    { name: 'Rent', value: 45000, color: 'hsl(120,67%,37%)' },
-    { name: 'Marketplace', value: 100, color: 'hsl(120,50%,90%)' },
+    { name: 'Cattle Purchase', value: 1587850 },
+    { name: 'Feed', value: 35000 },
+    { name: 'Medical', value: 1500 },
+    { name: 'Salary', value: 90000 },
+    { name: 'Rent', value: 45000 },
+    { name: 'Marketplace', value: 100 },
   ];
 
   return (
@@ -200,12 +260,13 @@ const AccountsDashboard = () => {
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-base">Top Expense Categories</CardTitle></CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={240}>
+            <ResponsiveContainer width="100%" height={260}>
               <PieChart>
-                <Pie data={expenseCategories} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name }) => name} animationDuration={800}>
-                  {expenseCategories.map((e, i) => <Cell key={i} fill={e.color} />)}
+                <PieDefs />
+                <Pie data={expenseCategories} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={95} paddingAngle={3} cornerRadius={6} stroke="#fff" strokeWidth={3} label={({ name }) => name} animationDuration={1200} style={{ filter: 'drop-shadow(2px 4px 8px rgba(0,0,0,0.12))' }}>
+                  {expenseCategories.map((_, i) => <Cell key={i} fill={`url(#${PIE_GRADIENTS[i % PIE_GRADIENTS.length].id})`} />)}
                 </Pie>
-                <Tooltip />
+                <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
@@ -213,14 +274,15 @@ const AccountsDashboard = () => {
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-base">Income vs Expenses (6 Months)</CardTitle></CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={240}>
+            <ResponsiveContainer width="100%" height={260}>
               <BarChart data={revenueData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsla(120,46%,62%,0.2)" />
+                <ChartDefs />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsla(120,46%,62%,0.15)" />
                 <XAxis dataKey="month" fontSize={12} />
                 <YAxis fontSize={12} />
-                <Tooltip />
-                <Bar dataKey="revenue" fill="hsl(120,50%,48%)" radius={[4, 4, 0, 0]} animationDuration={800} />
-                <Bar dataKey="expenses" fill="hsl(44,76%,60%)" radius={[4, 4, 0, 0]} animationDuration={800} />
+                <Tooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR} />
+                <Bar dataKey="revenue" fill="url(#greenBar)" radius={[8, 8, 0, 0]} animationDuration={1200} style={{ filter: 'drop-shadow(2px 4px 6px rgba(0,0,0,0.15))' }} />
+                <Bar dataKey="expenses" fill="url(#goldBar)" radius={[8, 8, 0, 0]} animationDuration={1200} style={{ filter: 'drop-shadow(2px 4px 6px rgba(0,0,0,0.15))' }} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

@@ -9,6 +9,11 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useToast } from "@/hooks/use-toast";
 import { revenueData, monthlyRevenueChart } from "@/data/super-admin";
 
+const CHART_TOOLTIP_STYLE = {
+  background: 'white', border: 'none', borderRadius: '12px',
+  boxShadow: '0 8px 24px rgba(0,0,0,0.12)', borderTop: '3px solid #4ad88a', padding: '12px 16px',
+};
+
 const Revenue = () => {
   const { toast } = useToast();
   const [data, setData] = useState(revenueData);
@@ -47,7 +52,6 @@ const Revenue = () => {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-foreground">Revenue</h1>
 
-      {/* Fee Structure */}
       <Collapsible>
         <CollapsibleTrigger asChild>
           <Card className="cursor-pointer">
@@ -61,15 +65,14 @@ const Revenue = () => {
         <CollapsibleContent>
           <Card className="mt-1">
             <CardContent className="p-4 text-sm text-muted-foreground leading-relaxed">
-              <strong>Subscription Fee:</strong> PKR 50 per active animal per month (based on cattle count in farm ERP).<br />
-              <strong>Listing Fee:</strong> PKR 50 per listing (one-time, at time of listing).<br />
-              Both tracked and marked as paid manually by Super Admin. No automatic payment processing.
+              <strong>Subscription Fee:</strong> PKR 50 per active animal per month.<br />
+              <strong>Listing Fee:</strong> PKR 50 per listing (one-time).<br />
+              Both tracked and marked as paid manually. No automatic payment processing.
             </CardContent>
           </Card>
         </CollapsibleContent>
       </Collapsible>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((s) => (
           <Card key={s.label} className={s.accent}>
@@ -84,25 +87,33 @@ const Revenue = () => {
         ))}
       </div>
 
-      {/* Chart */}
       <Card>
         <CardHeader><CardTitle className="text-base">Monthly Revenue</CardTitle></CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={monthlyRevenueChart}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(120 46% 62% / 0.2)" />
+              <defs>
+                <linearGradient id="saGreenBar" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#4ad88a" stopOpacity={1} />
+                  <stop offset="100%" stopColor="#1f9e1f" stopOpacity={0.8} />
+                </linearGradient>
+                <linearGradient id="saRedBar" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#e85858" stopOpacity={1} />
+                  <stop offset="100%" stopColor="#b91c1c" stopOpacity={0.8} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(120 46% 62% / 0.15)" />
               <XAxis dataKey="month" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip />
+              <Tooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={{ fill: 'rgba(74,216,138,0.06)' }} />
               <Legend />
-              <Bar dataKey="collected" fill="#4ad88a" name="Collected" radius={[4, 4, 0, 0]} animationDuration={800} />
-              <Bar dataKey="outstanding" fill="#e85858" name="Outstanding" radius={[4, 4, 0, 0]} animationDuration={800} />
+              <Bar dataKey="collected" fill="url(#saGreenBar)" name="Collected" radius={[8, 8, 0, 0]} animationDuration={1200} style={{ filter: 'drop-shadow(2px 4px 6px rgba(0,0,0,0.15))' }} />
+              <Bar dataKey="outstanding" fill="url(#saRedBar)" name="Outstanding" radius={[8, 8, 0, 0]} animationDuration={1200} style={{ filter: 'drop-shadow(2px 4px 6px rgba(0,0,0,0.15))' }} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
-      {/* Per Farm Table */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -114,15 +125,9 @@ const Revenue = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Farm Name</TableHead>
-                <TableHead>Animals</TableHead>
-                <TableHead>Sub Fee</TableHead>
-                <TableHead>Listings</TableHead>
-                <TableHead>List Fee</TableHead>
-                <TableHead>Total Owed</TableHead>
-                <TableHead>Total Paid</TableHead>
-                <TableHead>Balance Due</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Farm Name</TableHead><TableHead>Animals</TableHead><TableHead>Sub Fee</TableHead>
+                <TableHead>Listings</TableHead><TableHead>List Fee</TableHead><TableHead>Total Owed</TableHead>
+                <TableHead>Total Paid</TableHead><TableHead>Balance Due</TableHead><TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -150,7 +155,6 @@ const Revenue = () => {
         </CardContent>
       </Card>
 
-      {/* Mark Paid Modal */}
       <Dialog open={!!markPaidModal} onOpenChange={() => setMarkPaidModal(null)}>
         <DialogContent>
           <DialogHeader><DialogTitle>Mark as Paid</DialogTitle></DialogHeader>
