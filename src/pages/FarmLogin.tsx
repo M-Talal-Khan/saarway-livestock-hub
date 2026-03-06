@@ -24,7 +24,8 @@ const FarmLogin = () => {
       farmLogin(Number(farmId), username, role as AppRole);
       toast({ title: 'Welcome!', description: 'Redirecting to your farm dashboard...' });
       setLoading(false);
-      navigate('/erp/stations-overview');
+      // Admin → stations overview, others → dashboard directly
+      navigate(role === 'Admin' ? '/erp/stations-overview' : '/erp/dashboard');
     }, 1000);
   };
 
