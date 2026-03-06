@@ -137,6 +137,13 @@
   .sw-count-up {
     animation: swCountUp 1s ease-out;
   }
+
+  /* ERP stat card left borders */
+  .erp-stat-border-animals { border-left: 3px solid hsl(120 50% 48%); }
+  .erp-stat-border-finance { border-left: 3px solid hsl(44 76% 60%); }
+  .erp-stat-border-health { border-left: 3px solid hsl(192 72% 60%); }
+  .erp-stat-border-alert { border-left: 3px solid hsl(0 76% 63%); }
+  .erp-stat-border-rent { border-left: 3px solid hsl(120 67% 37%); }
 }
 
 @keyframes swFadeIn {
@@ -157,4 +164,25 @@
 @keyframes swCountUp {
   from { opacity: 0; transform: scale(0.5); }
   to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes swBellBounce {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(12deg); }
+  40% { transform: rotate(-8deg); }
+  60% { transform: rotate(5deg); }
+  80% { transform: rotate(-3deg); }
+}
+
+@keyframes swPulseSubtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-bell-bounce {
+  animation: swBellBounce 0.6s ease-in-out infinite;
+}
+
+.animate-pulse-subtle {
+  animation: swPulseSubtle 2s ease-in-out infinite;
 }

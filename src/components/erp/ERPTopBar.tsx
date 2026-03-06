@@ -13,7 +13,7 @@ const ERPTopBar = () => {
   const [notifOpen, setNotifOpen] = useState(false);
 
   return (
-    <header className="h-14 border-b border-border bg-background flex items-center px-4 gap-3 shrink-0">
+    <header className="h-14 border-b border-border bg-white flex items-center px-4 gap-3 shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
       {stationSelected && <SidebarTrigger className="mr-2" />}
 
       <div className="flex items-center gap-2 min-w-0">
@@ -29,8 +29,8 @@ const ERPTopBar = () => {
           {/* Notification Bell */}
           <div className="relative">
             <Button variant="ghost" size="icon" className="relative" onClick={() => setNotifOpen(!notifOpen)}>
-              <Bell className="h-4 w-4" />
-              <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center">4</span>
+              <Bell className="h-4 w-4 animate-bell-bounce" />
+              <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center animate-pulse-subtle">4</span>
             </Button>
             {notifOpen && <NotificationPanel onClose={() => setNotifOpen(false)} />}
           </div>
@@ -40,7 +40,7 @@ const ERPTopBar = () => {
             <Button
               variant="outline"
               size="sm"
-              className="h-8 text-xs gap-1"
+              className="h-8 text-xs gap-1 border-primary text-primary hover:bg-sw-green-50 hover:border-sw-green-700"
               onClick={() => {
                 clearStation();
                 navigate('/erp/stations-overview');

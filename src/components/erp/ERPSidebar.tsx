@@ -44,7 +44,7 @@ const ERPSidebar = () => {
   const visibleModules = modules.filter(m => m.roles.includes(role) || m.comingSoon);
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border bg-background">
+    <Sidebar collapsible="icon" className="border-r border-border bg-white">
       <SidebarHeader className="p-4 border-b border-border">
         {!collapsed && (
           <div className="flex items-center gap-2">
@@ -76,7 +76,11 @@ const ERPSidebar = () => {
                         if (!item.disabled && isAllowed) navigate(item.url);
                       }}
                       className={`
-                        ${isActive ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''}
+                        rounded-lg transition-colors duration-200
+                        ${isActive
+                          ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                          : 'hover:bg-sw-green-100'
+                        }
                         ${item.disabled || !isAllowed ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                       `}
                     >
