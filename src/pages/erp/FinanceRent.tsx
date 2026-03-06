@@ -24,24 +24,7 @@ const PIE_GRADIENTS = [
   { id: 'fPieLight', from: '#a7f3d0', to: '#6ee7b7' },
 ];
 
-const ChartDefs = () => (
-  <defs>
-    <linearGradient id="fGreenBar" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stopColor="#4ad88a" stopOpacity={1} />
-      <stop offset="100%" stopColor="#1f9e1f" stopOpacity={0.8} />
-    </linearGradient>
-    <linearGradient id="fGoldBar" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stopColor="#f5d87a" stopOpacity={1} />
-      <stop offset="100%" stopColor="#d4a934" stopOpacity={0.8} />
-    </linearGradient>
-    {PIE_GRADIENTS.map(g => (
-      <linearGradient key={g.id} id={g.id} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor={g.from} stopOpacity={1} />
-        <stop offset="100%" stopColor={g.to} stopOpacity={0.85} />
-      </linearGradient>
-    ))}
-  </defs>
-);
+// Inline defs - used directly inside each chart
 
 const revenueData = [
   { month: 'Sep', income: 320000, expenses: 280000 },
@@ -112,7 +95,16 @@ const FinanceRent = () => {
           <CardContent>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={revenueData}>
-                <ChartDefs />
+                <defs>
+                  <linearGradient id="fGreenBar" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#4ad88a" stopOpacity={1} />
+                    <stop offset="100%" stopColor="#1f9e1f" stopOpacity={0.8} />
+                  </linearGradient>
+                  <linearGradient id="fGoldBar" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#f5d87a" stopOpacity={1} />
+                    <stop offset="100%" stopColor="#d4a934" stopOpacity={0.8} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsla(120,46%,62%,0.15)" />
                 <XAxis dataKey="month" fontSize={12} />
                 <YAxis fontSize={12} />
@@ -128,7 +120,14 @@ const FinanceRent = () => {
           <CardContent>
             <ResponsiveContainer width="100%" height={260}>
               <PieChart>
-                <ChartDefs />
+                <defs>
+                  {PIE_GRADIENTS.map(g => (
+                    <linearGradient key={g.id} id={g.id} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={g.from} stopOpacity={1} />
+                      <stop offset="100%" stopColor={g.to} stopOpacity={0.85} />
+                    </linearGradient>
+                  ))}
+                </defs>
                 <Pie data={expenseCategories} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={95} paddingAngle={3} cornerRadius={6} stroke="#fff" strokeWidth={3} label={({ name }) => name} animationDuration={1200} style={{ filter: 'drop-shadow(2px 4px 8px rgba(0,0,0,0.12))' }}>
                   {expenseCategories.map((_, i) => <Cell key={i} fill={`url(#${PIE_GRADIENTS[i % PIE_GRADIENTS.length].id})`} />)}
                 </Pie>
