@@ -1,12 +1,19 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Factory, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useAuth, AppRole } from '@/context/AuthContext';
 
-const roles = ['Admin', 'Manager', 'Veterinarian', 'Accounts Officer', 'Worker'];
+const roles: AppRole[] = ['Admin', 'Manager', 'Veterinarian', 'Accounts Officer', 'Worker'];
 
 const FarmLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [farmId, setFarmId] = useState('');
+  const [role, setRole] = useState<AppRole | ''>('');
+  const [username, setUsername] = useState('');
+  const { farmLogin } = useAuth();
+  const navigate = useNavigate();
 
   const inputClass = "w-full px-4 py-3 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all";
 
@@ -14,9 +21,11 @@ const FarmLogin = () => {
     e.preventDefault();
     setLoading(true);
     setTimeout(() => {
-      toast({ title: 'Redirecting...', description: 'Redirecting to your farm dashboard...' });
+      farmLogin(Number(farmId), username, role as AppRole);
+      toast({ title: 'Welcome!', description: 'Redirecting to your farm dashboard...' });
       setLoading(false);
-    }, 2000);
+      navigate('/erp/stations-overview');
+    }, 1000);
   };
 
   const handleForgot = () => {
@@ -36,18 +45,18 @@ const FarmLogin = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-sm font-medium text-foreground mb-1 block">Farm ID</label>
-              <input type="number" required min={1} max={999} className={inputClass} placeholder="Your unique Farm ID (1-999)" />
+              <input type="number" required min={1} max={999} value={farmId} onChange={e => setFarmId(e.target.value)} className={inputClass} placeholder="Your unique Farm ID (1-999)" />
             </div>
             <div>
               <label className="text-sm font-medium text-foreground mb-1 block">Role</label>
-              <select required className={inputClass}>
+              <select required value={role} onChange={e => setRole(e.target.value as AppRole)} className={inputClass}>
                 <option value="">Select your role</option>
                 {roles.map(r => <option key={r} value={r}>{r}</option>)}
               </select>
             </div>
             <div>
               <label className="text-sm font-medium text-foreground mb-1 block">Username</label>
-              <input type="text" required className={inputClass} placeholder="Your assigned username" />
+              <input type="text" required value={username} onChange={e => setUsername(e.target.value)} className={inputClass} placeholder="Your assigned username" />
             </div>
             <div>
               <label className="text-sm font-medium text-foreground mb-1 block">Password</label>
