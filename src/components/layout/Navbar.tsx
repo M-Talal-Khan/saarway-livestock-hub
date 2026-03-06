@@ -1,14 +1,20 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Leaf, LogOut } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, Leaf, LogOut, ChevronDown, User, Factory } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const navLinks = [
   { to: '/', label: 'Home' },
   { to: '/about', label: 'About' },
   { to: '/farms', label: 'Farms' },
   { to: '/marketplace', label: 'Marketplace' },
-  { to: '/contact', label: 'Contact' },
+  { to: '/contact', label: 'Contact Us' },
 ];
 
 const Navbar = () => {
@@ -16,6 +22,7 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { isLoggedIn, userName, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -27,22 +34,18 @@ const Navbar = () => {
     setMobileOpen(false);
   }, [location]);
 
-  const isHeroPage = location.pathname === '/' || location.pathname === '/about' || location.pathname === '/register-farm';
-
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled || !isHeroPage
-          ? 'sw-glass shadow-lg'
-          : 'bg-transparent'
+        scrolled
+          ? 'backdrop-blur-xl bg-sw-green-700/90 shadow-lg border-b border-white/10'
+          : 'bg-sw-green-700'
       }`}
     >
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
         <Link to="/" className="flex items-center gap-2 font-bold text-xl">
-          <Leaf className={`w-7 h-7 ${scrolled || !isHeroPage ? 'text-primary' : 'text-primary-foreground'}`} />
-          <span className={scrolled || !isHeroPage ? 'text-foreground' : 'text-primary-foreground'}>
-            Saarway
-          </span>
+          <Leaf className="w-7 h-7 text-white" />
+          <span className="text-white">Saarway</span>
         </Link>
 
         {/* Desktop */}
@@ -51,67 +54,90 @@ const Navbar = () => {
             <Link
               key={link.to}
               to={link.to}
-              className={`text-sm font-medium transition-colors hover:text-primary ${
+              className={`text-sm font-medium transition-colors hover:text-accent ${
                 location.pathname === link.to
-                  ? 'text-primary font-semibold'
-                  : scrolled || !isHeroPage
-                  ? 'text-foreground'
-                  : 'text-primary-foreground'
+                  ? 'text-white font-semibold underline underline-offset-4'
+                  : 'text-white/90'
               }`}
             >
               {link.label}
             </Link>
           ))}
-          {isLoggedIn ? (
-            <div className="flex items-center gap-3">
-              <span className={`text-sm ${scrolled || !isHeroPage ? 'text-muted-foreground' : 'text-primary-foreground/70'}`}>{userName}</span>
-              <button onClick={logout} className="text-sm text-destructive hover:underline flex items-center gap-1">
-                <LogOut className="w-4 h-4" /> Logout
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Link to="/login" className="text-sm font-medium px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-sw-green-700 transition-colors sw-btn-glow">
-                Login
-              </Link>
-              <Link to="/farm-login" className={`text-sm font-medium px-4 py-2 rounded-lg border transition-colors ${
-                scrolled || !isHeroPage ? 'border-primary text-primary hover:bg-secondary' : 'border-primary-foreground/50 text-primary-foreground hover:bg-primary-foreground/10'
-              }`}>
-                Farm Login
-              </Link>
-            </div>
-          )}
+
+          <div className="flex items-center gap-3 ml-2">
+            {/* Register Your Farm CTA */}
+            <Link
+              to="/register-farm"
+              className="text-sm font-bold px-4 py-2 rounded-lg bg-accent text-foreground shadow-md hover:shadow-lg hover:scale-[1.02] transition-all"
+            >
+              Register Your Farm
+            </Link>
+
+            {isLoggedIn ? (
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-white/70">{userName}</span>
+                <button onClick={logout} className="text-sm text-white hover:text-destructive flex items-center gap-1 border border-white/30 rounded-lg px-3 py-2 transition-colors">
+                  <LogOut className="w-4 h-4" /> Logout
+                </button>
+              </div>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="text-sm font-medium px-4 py-2 rounded-lg border border-white/50 text-white bg-transparent hover:bg-white/10 transition-colors flex items-center gap-1.5 outline-none">
+                  Login <ChevronDown className="w-4 h-4" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52 bg-white rounded-xl shadow-xl border border-border p-1">
+                  <DropdownMenuItem
+                    onClick={() => navigate('/login')}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer text-foreground hover:bg-secondary"
+                  >
+                    <User className="w-4 h-4 text-primary" />
+                    <span>Individual User</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => navigate('/farm-login')}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer text-foreground hover:bg-secondary"
+                  >
+                    <Factory className="w-4 h-4 text-primary" />
+                    <span>Farm Owner</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </div>
 
         {/* Mobile toggle */}
         <button className="md:hidden" onClick={() => setMobileOpen(!mobileOpen)}>
-          {mobileOpen ? (
-            <X className={`w-6 h-6 ${scrolled || !isHeroPage ? 'text-foreground' : 'text-primary-foreground'}`} />
-          ) : (
-            <Menu className={`w-6 h-6 ${scrolled || !isHeroPage ? 'text-foreground' : 'text-primary-foreground'}`} />
-          )}
+          {mobileOpen ? <X className="w-6 h-6 text-white" /> : <Menu className="w-6 h-6 text-white" />}
         </button>
       </div>
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden sw-glass-card border-t border-border px-4 pb-4 pt-2">
+        <div className="md:hidden bg-white border-t border-border px-4 pb-4 pt-2 shadow-lg">
           {navLinks.map((link) => (
             <Link
               key={link.to}
               to={link.to}
-              className={`block py-2 text-sm font-medium ${location.pathname === link.to ? 'text-primary' : 'text-foreground'}`}
+              className={`block py-2.5 text-sm font-medium ${location.pathname === link.to ? 'text-primary font-semibold' : 'text-foreground'}`}
             >
               {link.label}
             </Link>
           ))}
           <div className="flex flex-col gap-2 mt-3 pt-3 border-t border-border">
+            <Link to="/register-farm" className="text-center text-sm font-bold px-4 py-2.5 rounded-lg bg-accent text-foreground shadow-md">
+              Register Your Farm
+            </Link>
             {isLoggedIn ? (
-              <button onClick={logout} className="text-sm text-destructive">Logout ({userName})</button>
+              <button onClick={logout} className="text-sm text-destructive py-2">Logout ({userName})</button>
             ) : (
               <>
-                <Link to="/login" className="text-center text-sm font-medium px-4 py-2 rounded-lg bg-primary text-primary-foreground">Login</Link>
-                <Link to="/farm-login" className="text-center text-sm font-medium px-4 py-2 rounded-lg border border-primary text-primary">Farm Login</Link>
+                <Link to="/login" className="flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-lg border border-border text-foreground">
+                  <User className="w-4 h-4" /> Individual User Login
+                </Link>
+                <Link to="/farm-login" className="flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-lg border border-border text-foreground">
+                  <Factory className="w-4 h-4" /> Farm Owner Login
+                </Link>
               </>
             )}
           </div>
