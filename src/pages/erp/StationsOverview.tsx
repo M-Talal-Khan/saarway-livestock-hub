@@ -1,11 +1,15 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { erpStations } from '@/data/erp/erpStations';
 import { Card, CardContent } from '@/components/ui/card';
 
 const StationsOverview = () => {
-  const { currentFarm, setStation } = useAuth();
+  const { currentFarm, currentUser, setStation } = useAuth();
   const navigate = useNavigate();
+
+  if (currentUser?.role !== 'Admin') {
+    return <Navigate to="/erp/dashboard" replace />;
+  }
 
   const handleSelect = (station: typeof erpStations[0]) => {
     setStation({ tag: station.tag, name: station.name, location: station.location });
