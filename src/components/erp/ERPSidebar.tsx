@@ -22,7 +22,7 @@ interface ModuleItem {
 const modules: ModuleItem[] = [
   { title: 'Dashboard', icon: Home, url: '/erp/dashboard', roles: ['Admin', 'Manager', 'Veterinarian', 'Accounts Officer', 'Worker'] },
   { title: 'Cattle Management', icon: Beef, url: '/erp/cattle', roles: ['Admin', 'Manager', 'Veterinarian', 'Worker'] },
-  { title: 'Feed & Inventory', icon: Wheat, url: '/erp/feed', disabled: true, comingSoon: true, roles: ['Admin', 'Manager'] },
+  { title: 'Feed & Inventory', icon: Wheat, url: '/erp/feed', roles: ['Admin', 'Manager', 'Worker'] },
   { title: 'Health & Vaccination', icon: Syringe, url: '/erp/health', roles: ['Admin', 'Manager', 'Veterinarian'] },
   { title: 'Buying', icon: ShoppingCart, url: '/erp/buying', roles: ['Admin', 'Manager'] },
   { title: 'Selling', icon: Banknote, url: '/erp/selling', roles: ['Admin', 'Manager'] },
