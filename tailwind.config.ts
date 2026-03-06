@@ -65,6 +65,14 @@ export default {
           sky: {
             400: "hsl(var(--sw-sky-400))",
           },
+          admin: {
+            bg: "hsl(var(--sw-admin-bg))",
+            mid: "hsl(var(--sw-admin-mid))",
+            blue: "hsl(var(--sw-admin-blue))",
+            green: "hsl(var(--sw-admin-green))",
+            warn: "hsl(var(--sw-admin-warn))",
+            err: "hsl(var(--sw-admin-err))",
+          },
           text: "hsl(var(--sw-text))",
           "text-muted": "hsl(var(--sw-text-muted))",
           surface: "hsl(var(--sw-surface))",
