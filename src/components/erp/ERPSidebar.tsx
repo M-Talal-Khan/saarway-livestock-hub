@@ -51,12 +51,12 @@ const ERPSidebar = () => {
       <SidebarHeader className={`border-b border-border ${collapsed ? 'p-2 flex items-center justify-center' : 'p-5'}`}>
         {!collapsed ? (
           <div className="flex items-center gap-2.5">
-            <Image src="/images/logo-icon.png" alt="Saarway" width={32} height={32} />
+            <Image src="/images/logo-icon-v2.png" alt="Saarway" width={32} height={32} />
             <span className="font-bold text-foreground text-sm">Saarway ERP</span>
           </div>
         ) : (
           <div className="flex items-center justify-center w-full">
-            <Image src="/images/logo-icon.png" alt="Saarway" width={24} height={24} />
+            <Image src="/images/logo-icon-v2.png" alt="Saarway" width={24} height={24} />
           </div>
         )}
       </SidebarHeader>

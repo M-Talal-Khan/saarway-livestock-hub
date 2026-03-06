@@ -37,11 +37,15 @@ const FarmLogin = () => {
   };
 
   return (
-    <main className="pt-20 pb-16 bg-background min-h-screen flex items-center justify-center">
-      <div className="w-full max-w-md mx-4">
-        <div className="sw-glass-card rounded-2xl p-8">
+    <main className="pt-20 pb-16 sw-mesh-gradient min-h-screen flex items-center justify-center relative overflow-hidden">
+      {/* Decorative Blobs */}
+      <div className="absolute top-1/3 left-1/4 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-sw-blob" />
+      <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-accent/20 rounded-full blur-3xl animate-sw-blob" style={{ animationDelay: '-3s' }} />
+
+      <div className="w-full max-w-md mx-4 relative z-10">
+        <div className="sw-glass-premium rounded-3xl p-8 shadow-2xl">
           <div className="text-center mb-6">
-            <Image src="/images/logo-icon.png" alt="Saarway" width={56} height={56} className="mx-auto mb-3" />
+            <Image src="/images/logo-icon-v2.png" alt="Saarway" width={56} height={56} className="mx-auto mb-3" />
             <h1 className="text-2xl font-bold text-foreground">Farm Owner Login</h1>
             <p className="text-sm text-muted-foreground mt-1">Enter your credentials provided by Saarway admin</p>
           </div>
@@ -74,9 +78,9 @@ const FarmLogin = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-sw-green-700 transition-colors sw-btn-glow disabled:opacity-70"
+              className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-primary text-primary-foreground font-bold text-lg hover:bg-sw-green-700 transition-all sw-btn-glow sw-ripple shadow-lg disabled:opacity-70"
             >
-              {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Logging in...</> : 'Login to Farm Dashboard'}
+              {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> Logging in...</> : 'Login to Farm Dashboard'}
             </button>
           </form>
 

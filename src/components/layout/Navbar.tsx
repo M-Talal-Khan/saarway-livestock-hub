@@ -41,14 +41,14 @@ const Navbar = () => {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
-          ? 'backdrop-blur-xl bg-sw-green-700/90 shadow-lg border-b border-white/10'
-          : 'bg-sw-green-700'
+        ? 'backdrop-blur-xl bg-white/95 shadow-sm border-b border-border'
+        : 'bg-white'
         }`}
     >
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
         <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-          <Image src="/images/logo-icon.png" alt="Saarway" width={36} height={36} className="drop-shadow-[0_1px_3px_rgba(255,255,255,0.4)]" />
-          <span className="text-white">Saarway</span>
+          <Image src="/images/logo-icon-v2.png" alt="Saarway" width={36} height={36} />
+          <span className="text-sw-green-950 font-extrabold tracking-tight">Saarway</span>
         </Link>
 
         {/* Desktop */}
@@ -57,9 +57,9 @@ const Navbar = () => {
             <Link
               key={link.to}
               href={link.to}
-              className={`text-sm font-medium transition-colors hover:text-accent ${pathname === link.to
-                  ? 'text-white font-semibold underline underline-offset-4'
-                  : 'text-white/90'
+              className={`text-sm font-medium transition-colors hover:text-sw-green-600 ${pathname === link.to
+                ? 'text-sw-green-700 font-bold underline underline-offset-4'
+                : 'text-sw-green-950/80'
                 }`}
             >
               {link.label}
@@ -70,37 +70,37 @@ const Navbar = () => {
             {/* Register Your Farm CTA */}
             <Link
               href="/register-farm"
-              className="text-sm font-bold px-4 py-2 rounded-lg bg-accent text-foreground shadow-md hover:shadow-lg hover:scale-[1.02] transition-all"
+              className="text-sm font-bold px-4 py-2 rounded-lg bg-[#16a34a] text-white shadow-md hover:bg-[#15803d] hover:shadow-lg hover:scale-[1.02] transition-all sw-ripple"
             >
               Register Your Farm
             </Link>
 
             {isLoggedIn ? (
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-white/70">{userName}</span>
-                <button onClick={logout} className="text-sm text-white hover:text-destructive flex items-center gap-1 border border-white/30 rounded-lg px-3 py-2 transition-colors">
+              <div className="flex items-center gap-3 pl-2 border-l border-border">
+                <span className="text-sm font-medium text-sw-green-950/70">{userName}</span>
+                <button onClick={logout} className="text-sm text-sw-green-900 border border-border bg-sw-green-50 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 flex items-center gap-1 rounded-lg px-3 py-2 transition-all">
                   <LogOut className="w-4 h-4" /> Logout
                 </button>
               </div>
             ) : (
               <DropdownMenu>
-                <DropdownMenuTrigger className="text-sm font-medium px-4 py-2 rounded-lg border border-white/50 text-white bg-transparent hover:bg-white/10 transition-colors flex items-center gap-1.5 outline-none">
-                  Login <ChevronDown className="w-4 h-4" />
+                <DropdownMenuTrigger className="text-sm font-medium px-4 py-2 rounded-lg border border-border text-sw-green-950 bg-white hover:bg-sw-green-50 transition-all flex items-center gap-1.5 outline-none sw-ripple">
+                  Login <ChevronDown className="w-4 h-4 sw-icon-premium" />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52 bg-white rounded-xl shadow-xl border border-border p-1">
+                <DropdownMenuContent align="end" className="w-52 bg-white rounded-xl shadow-xl border border-border p-1 mt-1">
                   <DropdownMenuItem
                     onClick={() => router.push('/login')}
-                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer text-foreground hover:bg-secondary"
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer text-foreground hover:bg-sw-green-50"
                   >
-                    <User className="w-4 h-4 text-primary" />
-                    <span>Individual User</span>
+                    <User className="w-4 h-4 text-sw-green-600" />
+                    <span className="font-medium text-sw-green-950">Individual User</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => router.push('/farm-login')}
-                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer text-foreground hover:bg-secondary"
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer text-foreground hover:bg-sw-green-50"
                   >
-                    <Factory className="w-4 h-4 text-primary" />
-                    <span>Farm Owner</span>
+                    <Factory className="w-4 h-4 text-sw-green-600" />
+                    <span className="font-medium text-sw-green-950">Farm Owner</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -109,38 +109,41 @@ const Navbar = () => {
         </div>
 
         {/* Mobile toggle */}
-        <button className="md:hidden" onClick={() => setMobileOpen(!mobileOpen)}>
-          {mobileOpen ? <X className="w-6 h-6 text-white" /> : <Menu className="w-6 h-6 text-white" />}
+        <button className="md:hidden p-1" onClick={() => setMobileOpen(!mobileOpen)}>
+          {mobileOpen ? <X className="w-6 h-6 text-sw-green-950" /> : <Menu className="w-6 h-6 text-sw-green-950" />}
         </button>
       </div>
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden bg-white border-t border-border px-4 pb-4 pt-2 shadow-lg">
+        <div className="md:hidden bg-white border-t border-border px-4 pb-6 pt-2 shadow-xl absolute w-full mt-[1px]">
           {navLinks.map((link) => (
             <Link
               key={link.to}
               href={link.to}
-              className={`block py-2.5 text-sm font-medium ${pathname === link.to ? 'text-primary font-semibold' : 'text-foreground'}`}
+              className={`block py-3 text-sm font-medium border-b border-border/40 ${pathname === link.to ? 'text-sw-green-600 font-bold' : 'text-sw-green-950/80'
+                }`}
             >
               {link.label}
             </Link>
           ))}
-          <div className="flex flex-col gap-2 mt-3 pt-3 border-t border-border">
-            <Link href="/register-farm" className="text-center text-sm font-bold px-4 py-2.5 rounded-lg bg-accent text-foreground shadow-md">
+          <div className="flex flex-col gap-3 mt-5">
+            <Link href="/register-farm" className="text-center text-sm font-bold px-4 py-3 rounded-xl bg-[#16a34a] text-white shadow-md sw-ripple">
               Register Your Farm
             </Link>
             {isLoggedIn ? (
-              <button onClick={logout} className="text-sm text-destructive py-2">Logout ({userName})</button>
+              <button onClick={logout} className="text-sm font-medium text-destructive py-3 border border-destructive/20 rounded-xl bg-destructive/5 hover:bg-destructive/10">
+                Logout ({userName})
+              </button>
             ) : (
-              <>
-                <Link href="/login" className="flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-lg border border-border text-foreground">
-                  <User className="w-4 h-4" /> Individual User Login
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <Link href="/login" className="flex flex-col items-center justify-center gap-2 text-xs font-semibold px-2 py-4 rounded-xl border border-border text-sw-green-900 bg-sw-green-50 hover:bg-sw-green-100">
+                  <User className="w-5 h-5 text-sw-green-600" /> User Login
                 </Link>
-                <Link href="/farm-login" className="flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-lg border border-border text-foreground">
-                  <Factory className="w-4 h-4" /> Farm Owner Login
+                <Link href="/farm-login" className="flex flex-col items-center justify-center gap-2 text-xs font-semibold px-2 py-4 rounded-xl border border-border text-sw-green-900 bg-sw-green-50 hover:bg-sw-green-100">
+                  <Factory className="w-5 h-5 text-sw-green-600" /> Farm Login
                 </Link>
-              </>
+              </div>
             )}
           </div>
         </div>
