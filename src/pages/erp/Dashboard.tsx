@@ -5,6 +5,7 @@ import { sales } from '@/data/erp/sales';
 import { vaccinations } from '@/data/erp/vaccinations';
 import { treatments } from '@/data/erp/treatments';
 import { transactions } from '@/data/erp/transactions';
+import { getLowStockAlerts } from '@/data/erp/feed';
 import StatusBadge from '@/components/erp/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -94,6 +95,7 @@ const AdminDashboard = () => {
   const totalAnimals = cattle.length;
   const activeListings = cattle.filter(c => c.status === 'Listed').length;
   const upcomingVax = vaccinations.filter(v => v.status === 'Upcoming' || v.status === 'Overdue').length;
+  const lowFeedAlerts = getLowStockAlerts();
 
   return (
     <div className="space-y-6">
@@ -105,7 +107,7 @@ const AdminDashboard = () => {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <StatCard title="Rent Status" value="2 Rented, 1 Owned" sub="1 Paid, 1 Overdue" category="rent" />
-        <StatCard title="Low Feed Alerts" value="1 station flagged" category="alert" />
+        <StatCard title="Low Feed Alerts" value={`${lowFeedAlerts.length} items flagged`} sub={lowFeedAlerts.filter(a => a.severity === 'red').length + ' critical'} category="alert" />
         <StatCard title="Recent Sales" value={sales.length} category="finance" />
       </div>
 
