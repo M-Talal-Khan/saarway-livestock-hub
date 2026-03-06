@@ -40,15 +40,14 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
           ? 'backdrop-blur-xl bg-sw-green-700/90 shadow-lg border-b border-white/10'
           : 'bg-sw-green-700'
-      }`}
+        }`}
     >
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
         <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-          <Image src="/images/logo-icon.png" alt="Saarway" width={36} height={36} className="brightness-0 invert" />
+          <Image src="/images/logo-icon.png" alt="Saarway" width={36} height={36} className="drop-shadow-[0_1px_3px_rgba(255,255,255,0.4)]" />
           <span className="text-white">Saarway</span>
         </Link>
 
@@ -58,11 +57,10 @@ const Navbar = () => {
             <Link
               key={link.to}
               href={link.to}
-              className={`text-sm font-medium transition-colors hover:text-accent ${
-                pathname === link.to
+              className={`text-sm font-medium transition-colors hover:text-accent ${pathname === link.to
                   ? 'text-white font-semibold underline underline-offset-4'
                   : 'text-white/90'
-              }`}
+                }`}
             >
               {link.label}
             </Link>

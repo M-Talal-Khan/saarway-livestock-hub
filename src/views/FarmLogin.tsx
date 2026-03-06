@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, Factory, Loader2 } from 'lucide-react';
+import Image from 'next/image';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useAuth, AppRole } from '@/context/AuthContext';
 
@@ -40,7 +41,7 @@ const FarmLogin = () => {
       <div className="w-full max-w-md mx-4">
         <div className="sw-glass-card rounded-2xl p-8">
           <div className="text-center mb-6">
-            <Factory className="w-12 h-12 text-primary mx-auto mb-3" />
+            <Image src="/images/logo-icon.png" alt="Saarway" width={56} height={56} className="mx-auto mb-3" />
             <h1 className="text-2xl font-bold text-foreground">Farm Owner Login</h1>
             <p className="text-sm text-muted-foreground mt-1">Enter your credentials provided by Saarway admin</p>
           </div>

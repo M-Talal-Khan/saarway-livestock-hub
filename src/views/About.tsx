@@ -36,7 +36,7 @@ const About = () => {
               alt="Saarway"
               width={70}
               height={70}
-              className="mx-auto brightness-0 invert drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)]"
+              className="mx-auto drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)]"
             />
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-4 sw-fade-in-up" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.15)' }}>

@@ -12,7 +12,7 @@ const Footer = () => {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 font-bold text-xl mb-3">
-              <Image src="/images/logo-icon.png" alt="Saarway" width={28} height={28} className="brightness-0 invert" />
+              <Image src="/images/logo-icon.png" alt="Saarway" width={28} height={28} className="drop-shadow-[0_1px_3px_rgba(255,255,255,0.4)]" />
               <span>Saarway</span>
             </div>
             <p className="text-white/70 text-sm">Pakistan's First Livestock ERP & Marketplace</p>

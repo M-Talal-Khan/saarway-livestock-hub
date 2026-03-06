@@ -66,7 +66,7 @@ const Home = () => {
                 alt="Saarway"
                 width={90}
                 height={90}
-                className="mx-auto brightness-0 invert drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)]"
+                className="mx-auto drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)]"
                 priority
               />
             </div>

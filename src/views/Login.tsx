@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -34,15 +35,21 @@ const Login = () => {
     <main className="pt-20 pb-16 bg-background min-h-screen flex items-center justify-center">
       <div className="w-full max-w-md mx-4">
         <div className="sw-glass-card rounded-2xl p-8">
+          {/* Logo & Branding */}
+          <div className="text-center mb-6">
+            <Image src="/images/logo-icon.png" alt="Saarway" width={56} height={56} className="mx-auto mb-3" />
+            <h1 className="text-2xl font-bold text-foreground">Welcome to Saarway</h1>
+            <p className="text-sm text-muted-foreground mt-1">Pakistan&apos;s First Livestock ERP &amp; Marketplace</p>
+          </div>
+
           {/* Tabs */}
           <div className="flex mb-6 bg-secondary rounded-lg p-1">
             {(['login', 'signup'] as const).map(t => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
-                  tab === t ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'
-                }`}
+                className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${tab === t ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'
+                  }`}
               >
                 {t === 'login' ? 'Login' : 'Sign Up'}
               </button>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useSuperAdminAuth } from "@/context/SuperAdminAuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,7 @@ const SuperAdminLogin = () => {
     <div className="min-h-screen bg-sw-admin-bg flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
+          <Image src="/images/logo-icon.png" alt="Saarway" width={56} height={56} className="mx-auto mb-3 brightness-0 invert" />
           <h1 className="text-3xl font-bold text-white tracking-tight">SAARWAY</h1>
           <p className="text-sw-admin-blue mt-1">Super Admin</p>
         </div>
