@@ -1,4 +1,7 @@
-import { useLocation, Link } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Building2, Store, DollarSign,
   BarChart3, MessageSquare, Bell, Settings
@@ -16,7 +19,7 @@ const modules = [
 ];
 
 const SuperAdminSidebar = () => {
-  const location = useLocation();
+  const pathname = usePathname();
 
   return (
     <aside className="w-64 min-h-screen bg-sw-admin-bg flex flex-col">
@@ -27,11 +30,11 @@ const SuperAdminSidebar = () => {
 
       <nav className="flex-1 p-3 space-y-1">
         {modules.map((mod) => {
-          const active = location.pathname === mod.path;
+          const active = pathname === mod.path;
           return (
             <Link
               key={mod.path}
-              to={mod.path}
+              href={mod.path}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                 active
                   ? "bg-sw-admin-mid text-white border-l-[3px] border-sw-admin-green"

@@ -1,5 +1,8 @@
-import { Link } from 'react-router-dom';
-import { Leaf, Mail, Phone, MapPin } from 'lucide-react';
+"use client";
+
+import Link from 'next/link';
+import Image from 'next/image';
+import { Mail, Phone, MapPin } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -9,7 +12,7 @@ const Footer = () => {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 font-bold text-xl mb-3">
-              <Leaf className="w-6 h-6" />
+              <Image src="/images/logo-icon.png" alt="Saarway" width={28} height={28} className="brightness-0 invert" />
               <span>Saarway</span>
             </div>
             <p className="text-white/70 text-sm">Pakistan's First Livestock ERP & Marketplace</p>
@@ -20,10 +23,10 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold mb-3">Quick Links</h4>
             <div className="flex flex-col gap-2 text-sm text-white/60">
-              <Link to="/" className="hover:text-sw-green-300 transition-colors">Home</Link>
-              <Link to="/about" className="hover:text-sw-green-300 transition-colors">About</Link>
-              <Link to="/farms" className="hover:text-sw-green-300 transition-colors">Farms</Link>
-              <Link to="/marketplace" className="hover:text-sw-green-300 transition-colors">Marketplace</Link>
+              <Link href="/" className="hover:text-sw-green-300 transition-colors">Home</Link>
+              <Link href="/about" className="hover:text-sw-green-300 transition-colors">About</Link>
+              <Link href="/farms" className="hover:text-sw-green-300 transition-colors">Farms</Link>
+              <Link href="/marketplace" className="hover:text-sw-green-300 transition-colors">Marketplace</Link>
             </div>
           </div>
 
@@ -31,9 +34,9 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold mb-3">For Farms</h4>
             <div className="flex flex-col gap-2 text-sm text-white/60">
-              <Link to="/register-farm" className="hover:text-sw-green-300 transition-colors">Register Your Farm</Link>
-              <Link to="/farm-login" className="hover:text-sw-green-300 transition-colors">Farm Owner Login</Link>
-              <Link to="/contact" className="hover:text-sw-green-300 transition-colors">Contact Us</Link>
+              <Link href="/register-farm" className="hover:text-sw-green-300 transition-colors">Register Your Farm</Link>
+              <Link href="/farm-login" className="hover:text-sw-green-300 transition-colors">Farm Owner Login</Link>
+              <Link href="/contact" className="hover:text-sw-green-300 transition-colors">Contact Us</Link>
             </div>
           </div>
 

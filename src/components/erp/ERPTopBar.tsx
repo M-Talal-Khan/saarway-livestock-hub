@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Bell, MapPin, LogOut, ChevronDown, User } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -9,7 +11,7 @@ import NotificationPanel from './NotificationPanel';
 
 const ERPTopBar = () => {
   const { currentFarm, currentUser, currentStation, stationSelected, clearStation, logout } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [notifOpen, setNotifOpen] = useState(false);
 
   return (
@@ -43,7 +45,7 @@ const ERPTopBar = () => {
               className="h-8 text-xs gap-1.5 border-primary text-primary hover:bg-sw-green-50 hover:border-sw-green-700"
               onClick={() => {
                 clearStation();
-                navigate('/erp/stations-overview');
+                router.push('/erp/stations-overview');
               }}
             >
               <MapPin className="h-3.5 w-3.5" />
@@ -66,7 +68,7 @@ const ERPTopBar = () => {
                 <div className="text-muted-foreground font-normal">{currentUser?.role}</div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => { logout(); navigate('/'); }} className="text-destructive">
+              <DropdownMenuItem onClick={() => { logout(); router.push('/'); }} className="text-destructive">
                 <LogOut className="h-4 w-4 mr-2" /> Logout
               </DropdownMenuItem>
             </DropdownMenuContent>

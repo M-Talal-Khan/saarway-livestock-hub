@@ -1,0 +1,44 @@
+"use client";
+
+import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { useAuth } from "@/context/AuthContext";
+import ERPSidebar from "@/components/erp/ERPSidebar";
+import ERPTopBar from "@/components/erp/ERPTopBar";
+
+export default function ERPLayout({ children }: { children: React.ReactNode }) {
+  const { currentUser, stationSelected } = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const isAdmin = currentUser?.role === "Admin";
+  const onStationsPage = pathname === "/erp/stations-overview";
+
+  useEffect(() => {
+    if (isAdmin && !stationSelected && !onStationsPage) {
+      router.replace("/erp/stations-overview");
+    }
+  }, [isAdmin, stationSelected, onStationsPage, router]);
+
+  // While redirecting, don't render content
+  if (isAdmin && !stationSelected && !onStationsPage) {
+    return null;
+  }
+
+  const showSidebar = stationSelected;
+
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-sw-green-50">
+        {showSidebar && <ERPSidebar />}
+        <div className="flex-1 flex flex-col min-w-0">
+          <ERPTopBar />
+          <main className="flex-1 p-4 md:p-6 overflow-auto">
+            {children}
+          </main>
+        </div>
+      </div>
+    </SidebarProvider>
+  );
+}

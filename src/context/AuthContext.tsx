@@ -1,3 +1,5 @@
+"use client";
+
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 export type AppRole = 'Admin' | 'Manager' | 'Veterinarian' | 'Accounts Officer' | 'Worker';

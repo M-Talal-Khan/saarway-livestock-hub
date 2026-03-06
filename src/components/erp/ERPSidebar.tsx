@@ -1,4 +1,7 @@
-import { useLocation, useNavigate } from 'react-router-dom';
+"use client";
+
+import Image from 'next/image';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth, AppRole } from '@/context/AuthContext';
 import {
   Home, Beef, Wheat, Syringe, ShoppingCart, Banknote, BarChart3,
@@ -35,8 +38,8 @@ const modules: ModuleItem[] = [
 
 const ERPSidebar = () => {
   const { currentUser } = useAuth();
-  const location = useLocation();
-  const navigate = useNavigate();
+  const pathname = usePathname();
+  const router = useRouter();
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const role = currentUser?.role || 'Admin';
@@ -48,16 +51,12 @@ const ERPSidebar = () => {
       <SidebarHeader className="p-5 border-b border-border">
         {!collapsed ? (
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">SW</span>
-            </div>
-            <div>
-              <span className="font-bold text-foreground text-sm">Saarway ERP</span>
-            </div>
+            <Image src="/images/logo-icon.png" alt="Saarway" width={32} height={32} />
+            <span className="font-bold text-foreground text-sm">Saarway ERP</span>
           </div>
         ) : (
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center mx-auto">
-            <span className="text-primary-foreground font-bold text-sm">SW</span>
+          <div className="mx-auto">
+            <Image src="/images/logo-icon.png" alt="Saarway" width={32} height={32} />
           </div>
         )}
       </SidebarHeader>
@@ -66,7 +65,7 @@ const ERPSidebar = () => {
           <SidebarGroupContent>
             <SidebarMenu className="space-y-0.5">
               {visibleModules.map((item) => {
-                const isActive = location.pathname === item.url;
+                const isActive = pathname === item.url;
                 const isAllowed = item.roles.includes(role);
                 return (
                   <SidebarMenuItem key={item.title}>
@@ -74,7 +73,7 @@ const ERPSidebar = () => {
                       isActive={isActive}
                       tooltip={item.title}
                       onClick={() => {
-                        if (!item.disabled && isAllowed) navigate(item.url);
+                        if (!item.disabled && isAllowed) router.push(item.url);
                       }}
                       className={`
                         rounded-lg transition-all duration-200 py-2.5

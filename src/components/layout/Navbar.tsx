@@ -1,6 +1,10 @@
+"use client";
+
 import { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Leaf, LogOut, ChevronDown, User, Factory } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { Menu, X, LogOut, ChevronDown, User, Factory } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import {
   DropdownMenu,
@@ -21,8 +25,8 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { isLoggedIn, userName, logout } = useAuth();
-  const location = useLocation();
-  const navigate = useNavigate();
+  const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -32,7 +36,7 @@ const Navbar = () => {
 
   useEffect(() => {
     setMobileOpen(false);
-  }, [location]);
+  }, [pathname]);
 
   return (
     <nav
@@ -43,8 +47,8 @@ const Navbar = () => {
       }`}
     >
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
-        <Link to="/" className="flex items-center gap-2 font-bold text-xl">
-          <Leaf className="w-7 h-7 text-white" />
+        <Link href="/" className="flex items-center gap-2 font-bold text-xl">
+          <Image src="/images/logo-icon.png" alt="Saarway" width={36} height={36} className="brightness-0 invert" />
           <span className="text-white">Saarway</span>
         </Link>
 
@@ -53,9 +57,9 @@ const Navbar = () => {
           {navLinks.map((link) => (
             <Link
               key={link.to}
-              to={link.to}
+              href={link.to}
               className={`text-sm font-medium transition-colors hover:text-accent ${
-                location.pathname === link.to
+                pathname === link.to
                   ? 'text-white font-semibold underline underline-offset-4'
                   : 'text-white/90'
               }`}
@@ -67,7 +71,7 @@ const Navbar = () => {
           <div className="flex items-center gap-3 ml-2">
             {/* Register Your Farm CTA */}
             <Link
-              to="/register-farm"
+              href="/register-farm"
               className="text-sm font-bold px-4 py-2 rounded-lg bg-accent text-foreground shadow-md hover:shadow-lg hover:scale-[1.02] transition-all"
             >
               Register Your Farm
@@ -87,14 +91,14 @@ const Navbar = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-52 bg-white rounded-xl shadow-xl border border-border p-1">
                   <DropdownMenuItem
-                    onClick={() => navigate('/login')}
+                    onClick={() => router.push('/login')}
                     className="flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer text-foreground hover:bg-secondary"
                   >
                     <User className="w-4 h-4 text-primary" />
                     <span>Individual User</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => navigate('/farm-login')}
+                    onClick={() => router.push('/farm-login')}
                     className="flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer text-foreground hover:bg-secondary"
                   >
                     <Factory className="w-4 h-4 text-primary" />
@@ -118,24 +122,24 @@ const Navbar = () => {
           {navLinks.map((link) => (
             <Link
               key={link.to}
-              to={link.to}
-              className={`block py-2.5 text-sm font-medium ${location.pathname === link.to ? 'text-primary font-semibold' : 'text-foreground'}`}
+              href={link.to}
+              className={`block py-2.5 text-sm font-medium ${pathname === link.to ? 'text-primary font-semibold' : 'text-foreground'}`}
             >
               {link.label}
             </Link>
           ))}
           <div className="flex flex-col gap-2 mt-3 pt-3 border-t border-border">
-            <Link to="/register-farm" className="text-center text-sm font-bold px-4 py-2.5 rounded-lg bg-accent text-foreground shadow-md">
+            <Link href="/register-farm" className="text-center text-sm font-bold px-4 py-2.5 rounded-lg bg-accent text-foreground shadow-md">
               Register Your Farm
             </Link>
             {isLoggedIn ? (
               <button onClick={logout} className="text-sm text-destructive py-2">Logout ({userName})</button>
             ) : (
               <>
-                <Link to="/login" className="flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-lg border border-border text-foreground">
+                <Link href="/login" className="flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-lg border border-border text-foreground">
                   <User className="w-4 h-4" /> Individual User Login
                 </Link>
-                <Link to="/farm-login" className="flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-lg border border-border text-foreground">
+                <Link href="/farm-login" className="flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-lg border border-border text-foreground">
                   <Factory className="w-4 h-4" /> Farm Owner Login
                 </Link>
               </>

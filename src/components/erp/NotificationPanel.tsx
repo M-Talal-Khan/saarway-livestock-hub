@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { erpNotifications, ERPNotification } from '@/data/erp/notifications';
 import { AlertCircle, AlertTriangle, Info, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -25,7 +27,7 @@ const severityColor: Record<string, string> = {
 
 const NotificationPanel = ({ onClose }: { onClose: () => void }) => {
   const [notifications, setNotifications] = useState(erpNotifications);
-  const navigate = useNavigate();
+  const router = useRouter();
   const unread = notifications.filter(n => !n.read).length;
 
   const markRead = (id: string) => {
@@ -38,7 +40,7 @@ const NotificationPanel = ({ onClose }: { onClose: () => void }) => {
 
   const handleClick = (n: ERPNotification) => {
     markRead(n.id);
-    if (n.link) navigate(n.link);
+    if (n.link) router.push(n.link);
     onClose();
   };
 

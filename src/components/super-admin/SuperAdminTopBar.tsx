@@ -1,5 +1,8 @@
+"use client";
+
 import { Bell, LogOut, User } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSuperAdminAuth } from "@/context/SuperAdminAuthContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,18 +11,18 @@ import {
 
 const SuperAdminTopBar = () => {
   const { logout } = useSuperAdminAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleLogout = () => {
     logout();
-    navigate("/super-admin");
+    router.push("/super-admin");
   };
 
   return (
     <header className="h-14 bg-white border-b border-border shadow-[0_1px_3px_rgba(0,0,0,0.05)] flex items-center justify-between px-6">
       <h2 className="text-sm font-semibold text-foreground">Super Admin Panel</h2>
       <div className="flex items-center gap-3">
-        <Link to="/super-admin/alerts" className="relative p-2 rounded-lg hover:bg-muted transition-colors">
+        <Link href="/super-admin/alerts" className="relative p-2 rounded-lg hover:bg-muted transition-colors">
           <Bell className="h-5 w-5 text-muted-foreground" />
           <span className="absolute -top-0.5 -right-0.5 h-4 w-4 bg-sw-admin-err text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse-subtle">
             3
