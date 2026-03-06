@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Plus, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -34,11 +35,11 @@ const SettingsPage = () => {
   const [vaccines, setVaccines] = useState(mandatoryVaccines);
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-foreground mb-4">Settings</h1>
+    <div className="space-y-4">
+      <h1 className="text-2xl font-bold text-foreground">Settings</h1>
 
       <Tabs defaultValue="farm">
-        <TabsList className="flex-wrap">
+        <TabsList>
           <TabsTrigger value="farm">Farm Profile</TabsTrigger>
           <TabsTrigger value="stations">Station Details</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
@@ -48,62 +49,83 @@ const SettingsPage = () => {
 
         <TabsContent value="farm">
           <Card>
-            <CardContent className="p-6 space-y-4 max-w-lg">
-              <div><Label>Farm Name</Label><Input defaultValue="GRASS Farms" /></div>
-              <div><Label>Owner Name</Label><Input defaultValue="Muhammad Talal Khan" /></div>
-              <div><Label>Address</Label><Input defaultValue="GT Road, Kasur" /></div>
-              <div><Label>Contact Number</Label><Input defaultValue="0300-1234567" /></div>
-              <div><Label>Email</Label><Input defaultValue="admin@grassfarms.pk" /></div>
-              <div>
+            <CardContent className="p-6 space-y-5 max-w-lg">
+              {[
+                { label: 'Farm Name', defaultValue: 'GRASS Farms' },
+                { label: 'Owner Name', defaultValue: 'Muhammad Talal Khan' },
+                { label: 'Address', defaultValue: 'GT Road, Kasur' },
+                { label: 'Contact Number', defaultValue: '0300-1234567' },
+                { label: 'Email', defaultValue: 'admin@grassfarms.pk' },
+              ].map(f => (
+                <div key={f.label} className="space-y-2">
+                  <Label>{f.label}</Label>
+                  <Input defaultValue={f.defaultValue} />
+                </div>
+              ))}
+              <div className="space-y-2">
                 <Label>Farming Type</Label>
-                <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm" defaultValue="Meat">
-                  <option>Meat</option><option>Dairy</option><option>Both</option>
-                </select>
+                <Select defaultValue="Meat">
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Meat">Meat</SelectItem>
+                    <SelectItem value="Dairy">Dairy</SelectItem>
+                    <SelectItem value="Both">Both</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <Button onClick={() => toast({ title: 'Saved', description: 'Farm profile updated' })}>Save Changes</Button>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="stations">
-          <div className="flex justify-end mb-3">
-            <Button onClick={() => setAddStation(true)} className="gap-1"><Plus className="h-4 w-4" /> Add New Station</Button>
+        <TabsContent value="stations" className="space-y-4">
+          <div className="flex justify-end">
+            <Button onClick={() => setAddStation(true)} className="gap-1.5"><Plus className="h-4 w-4" /> Add New Station</Button>
           </div>
-          <div className="overflow-x-auto rounded-lg border border-border">
-            <Table>
-              <TableHeader><TableRow className="bg-muted/50">
-                <TableHead>Name</TableHead><TableHead>Location</TableHead><TableHead>Type</TableHead><TableHead>Rent</TableHead><TableHead>Contract</TableHead>
-              </TableRow></TableHeader>
-              <TableBody>
-                {erpStations.map(s => (
-                  <TableRow key={s.tag}>
-                    <TableCell className="font-medium">{s.name}</TableCell>
-                    <TableCell>{s.location}</TableCell>
-                    <TableCell><StatusBadge status={s.type} /></TableCell>
-                    <TableCell>{s.rentAmount ? `PKR ${s.rentAmount.toLocaleString()}` : '—'}</TableCell>
-                    <TableCell className="text-xs">{s.contractStart ? `${s.contractStart} → ${s.contractEnd}` : '—'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader><TableRow>
+                  <TableHead>Name</TableHead><TableHead>Location</TableHead><TableHead>Type</TableHead><TableHead>Rent</TableHead><TableHead>Contract</TableHead>
+                </TableRow></TableHeader>
+                <TableBody>
+                  {erpStations.map(s => (
+                    <TableRow key={s.tag}>
+                      <TableCell className="font-medium">{s.name}</TableCell>
+                      <TableCell>{s.location}</TableCell>
+                      <TableCell><StatusBadge status={s.type} /></TableCell>
+                      <TableCell>{s.rentAmount ? `PKR ${s.rentAmount.toLocaleString()}` : '—'}</TableCell>
+                      <TableCell className="text-xs">{s.contractStart ? `${s.contractStart} → ${s.contractEnd}` : '—'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
           <Dialog open={addStation} onOpenChange={setAddStation}>
             <DialogContent>
               <DialogHeader><DialogTitle>Add New Station</DialogTitle></DialogHeader>
-              <form onSubmit={e => { e.preventDefault(); setAddStation(false); toast({ title: 'Station added' }); }} className="space-y-3">
-                <Input placeholder="Station Name" required />
-                <Input placeholder="City / Location" required />
-                <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm">
-                  <option value="Owned">Owned</option><option value="Rented">Rented</option>
-                </select>
-                <Input placeholder="Rent Amount (if rented)" type="number" />
-                <div className="grid grid-cols-2 gap-2">
-                  <Input type="date" placeholder="Contract Start" />
-                  <Input type="date" placeholder="Contract End" />
+              <form onSubmit={e => { e.preventDefault(); setAddStation(false); toast({ title: 'Station added' }); }} className="space-y-4">
+                <div className="space-y-2"><Label>Station Name</Label><Input placeholder="e.g. Station 4 — North" required /></div>
+                <div className="space-y-2"><Label>City / Location</Label><Input placeholder="e.g. Lahore" required /></div>
+                <div className="space-y-2">
+                  <Label>Type</Label>
+                  <Select defaultValue="Owned">
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent><SelectItem value="Owned">Owned</SelectItem><SelectItem value="Rented">Rented</SelectItem></SelectContent>
+                  </Select>
                 </div>
-                <Input placeholder="Owner Name" />
-                <Input placeholder="Owner Contact" />
-                <Button type="submit" className="w-full">Add Station</Button>
+                <div className="space-y-2"><Label>Rent Amount (if rented)</Label><Input placeholder="e.g. 25000" type="number" /></div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2"><Label>Contract Start</Label><Input type="date" /></div>
+                  <div className="space-y-2"><Label>Contract End</Label><Input type="date" /></div>
+                </div>
+                <div className="space-y-2"><Label>Owner Name</Label><Input placeholder="e.g. Rana Asif" /></div>
+                <div className="space-y-2"><Label>Owner Contact</Label><Input placeholder="e.g. 0300-1234567" /></div>
+                <DialogFooter>
+                  <Button variant="ghost" type="button" onClick={() => setAddStation(false)}>Cancel</Button>
+                  <Button type="submit">Add Station</Button>
+                </DialogFooter>
               </form>
             </DialogContent>
           </Dialog>
@@ -111,12 +133,12 @@ const SettingsPage = () => {
 
         <TabsContent value="notifications">
           <Card>
-            <CardContent className="p-6 space-y-4 max-w-lg">
+            <CardContent className="p-6 space-y-5 max-w-lg">
               {notificationPrefs.map(n => (
-                <div key={n.id} className="flex items-center justify-between">
+                <div key={n.id} className="flex items-center justify-between py-1">
                   <div>
-                    <p className="text-sm font-medium">{n.label}</p>
-                    <p className="text-xs text-muted-foreground">{n.desc}</p>
+                    <p className="text-sm font-medium text-foreground">{n.label}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{n.desc}</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -127,11 +149,11 @@ const SettingsPage = () => {
 
         <TabsContent value="security">
           <Card>
-            <CardContent className="p-6 space-y-4 max-w-lg">
+            <CardContent className="p-6 space-y-5 max-w-lg">
               <p className="text-sm text-muted-foreground">Change password for the currently logged-in Admin account.</p>
-              <div><Label>Current Password</Label><Input type="password" /></div>
-              <div><Label>New Password</Label><Input type="password" /></div>
-              <div><Label>Confirm New Password</Label><Input type="password" /></div>
+              <div className="space-y-2"><Label>Current Password</Label><Input type="password" /></div>
+              <div className="space-y-2"><Label>New Password</Label><Input type="password" /></div>
+              <div className="space-y-2"><Label>Confirm New Password</Label><Input type="password" /></div>
               <Button onClick={() => toast({ title: 'Password Updated' })}>Change Password</Button>
             </CardContent>
           </Card>
@@ -140,24 +162,24 @@ const SettingsPage = () => {
         <TabsContent value="defaults">
           <Card>
             <CardContent className="p-6 space-y-6 max-w-lg">
-              <div>
+              <div className="space-y-2">
                 <Label>Default Transport Cost (per animal)</Label>
                 <Input type="number" defaultValue={2550} />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label>Auto-status Timing (days before Active → Fattening)</Label>
                 <Input type="number" defaultValue={7} />
               </div>
-              <div>
-                <Label className="mb-2 block">Mandatory Vaccine List</Label>
+              <div className="space-y-2">
+                <Label className="mb-3 block">Mandatory Vaccine List</Label>
                 {vaccines.map((v, i) => (
                   <div key={i} className="flex items-center gap-2 mb-2">
                     <Input value={v.name} className="flex-1" readOnly />
                     <Input value={v.frequency} className="w-28" readOnly />
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setVaccines(prev => prev.filter((_, j) => j !== i))}><Trash2 className="h-3 w-3" /></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => setVaccines(prev => prev.filter((_, j) => j !== i))}><Trash2 className="h-4 w-4" /></Button>
                   </div>
                 ))}
-                <Button variant="outline" size="sm" className="gap-1 mt-1" onClick={() => setVaccines(prev => [...prev, { name: 'New Vaccine', frequency: 'Annual' }])}><Plus className="h-3 w-3" />Add Vaccine</Button>
+                <Button variant="outline" size="sm" className="gap-1.5 mt-1" onClick={() => setVaccines(prev => [...prev, { name: 'New Vaccine', frequency: 'Annual' }])}><Plus className="h-3.5 w-3.5" />Add Vaccine</Button>
               </div>
               <Button onClick={() => toast({ title: 'Defaults Saved' })}>Save Defaults</Button>
             </CardContent>

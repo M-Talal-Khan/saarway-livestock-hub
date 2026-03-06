@@ -3,8 +3,10 @@ import { cattle } from '@/data/erp/cattle';
 import StatusBadge from '@/components/erp/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Plus, Eye, Pencil, Trash2, Info } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -21,31 +23,35 @@ const MarketplaceManagement = () => {
   };
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Marketplace Management</h1>
-        <Button onClick={() => setCreateOpen(true)} className="gap-1"><Plus className="h-4 w-4" /> Create Listing</Button>
+        <Button onClick={() => setCreateOpen(true)} className="gap-1.5"><Plus className="h-4 w-4" /> Create Listing</Button>
       </div>
 
-      <Card className="mb-4 border-amber-200 bg-amber-50">
-        <CardContent className="p-3 flex gap-2 items-start text-xs text-amber-800">
-          <Info className="h-4 w-4 mt-0.5 shrink-0" />
-          Platform charges PKR 50 per listing (one-time) + PKR 50 per active animal per month (subscription). Fees are tracked by Super Admin.
+      <Card className="border-sw-gold-400/30 bg-sw-gold-400/5">
+        <CardContent className="p-3 flex gap-2 items-start text-xs">
+          <Info className="h-4 w-4 mt-0.5 shrink-0 text-sw-gold-400" />
+          <span className="text-foreground/70">Platform charges PKR 50 per listing (one-time) + PKR 50 per active animal per month (subscription). Fees are tracked by Super Admin.</span>
         </CardContent>
       </Card>
 
       {listedAnimals.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          <p>No active listings. Create one to get started.</p>
-        </div>
+        <Card>
+          <CardContent className="py-16 text-center text-muted-foreground">
+            <p>No active listings. Create one to get started.</p>
+          </CardContent>
+        </Card>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {listedAnimals.map(a => (
-            <Card key={a.id} className="hover:shadow-md transition-shadow">
-              <div className="h-32 bg-muted rounded-t-lg flex items-center justify-center text-muted-foreground text-sm">Photo placeholder</div>
-              <CardContent className="p-4 space-y-2">
+            <Card key={a.id} className="overflow-hidden">
+              <div className="h-36 bg-sw-green-50 flex items-center justify-center text-muted-foreground text-sm">
+                Photo placeholder
+              </div>
+              <CardContent className="p-5 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="font-semibold">{a.breed}</span>
+                  <span className="font-semibold text-foreground">{a.breed}</span>
                   <StatusBadge status="Listed" />
                 </div>
                 <div className="text-xs text-muted-foreground space-y-0.5">
@@ -53,10 +59,10 @@ const MarketplaceManagement = () => {
                   <p>{a.station}</p>
                 </div>
                 <p className="text-lg font-bold text-primary">PKR {(a.purchasePrice * 1.3).toLocaleString()}</p>
-                <div className="flex gap-1 pt-1">
-                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1"><Eye className="h-3 w-3" />View</Button>
-                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1"><Pencil className="h-3 w-3" />Edit</Button>
-                  <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive gap-1"><Trash2 className="h-3 w-3" />Remove</Button>
+                <div className="flex gap-1.5 pt-1 border-t border-border">
+                  <Button variant="ghost" size="sm" className="h-8 text-xs gap-1.5 text-sw-sky-400 hover:text-sw-sky-400 hover:bg-sw-sky-400/10"><Eye className="h-3.5 w-3.5" />View</Button>
+                  <Button variant="ghost" size="sm" className="h-8 text-xs gap-1.5 text-primary hover:text-primary hover:bg-primary/10"><Pencil className="h-3.5 w-3.5" />Edit</Button>
+                  <Button variant="ghost" size="sm" className="h-8 text-xs gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10"><Trash2 className="h-3.5 w-3.5" />Remove</Button>
                 </div>
               </CardContent>
             </Card>
@@ -67,17 +73,31 @@ const MarketplaceManagement = () => {
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>Create Listing</DialogTitle></DialogHeader>
-          <form onSubmit={handlePublish} className="space-y-3">
-            <select name="cattleId" required className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm">
-              <option value="">Select Animal (Ready for Sale)</option>
-              {readyAnimals.map(a => <option key={a.id} value={a.id}>{a.id} — {a.breed} ({a.weight}kg)</option>)}
-            </select>
-            <div className="p-3 bg-muted/50 rounded text-xs text-muted-foreground">
-              Auto-filled fields (breed, teeth, weight, station) will be pulled from the cattle record.
+          <form onSubmit={handlePublish} className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Select Animal (Ready for Sale)</label>
+              <Select name="cattleId" required>
+                <SelectTrigger><SelectValue placeholder="Choose animal" /></SelectTrigger>
+                <SelectContent>{readyAnimals.map(a => <SelectItem key={a.id} value={a.id}>{a.id} — {a.breed} ({a.weight}kg)</SelectItem>)}</SelectContent>
+              </Select>
             </div>
-            <Input name="price" type="number" placeholder="Asking Price (PKR)" required />
-            <textarea name="description" placeholder="Description / Notes (optional)" className="w-full h-20 rounded-md border border-input bg-background px-3 py-2 text-sm resize-none" />
-            <Button type="submit" className="w-full">Publish Listing</Button>
+            <Card className="bg-muted/30">
+              <CardContent className="p-3 text-xs text-muted-foreground">
+                Auto-filled fields (breed, teeth, weight, station) will be pulled from the cattle record.
+              </CardContent>
+            </Card>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Asking Price (PKR)</label>
+              <Input name="price" type="number" placeholder="e.g. 450000" required />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Description (optional)</label>
+              <Textarea name="description" placeholder="Any additional notes for buyers" rows={3} />
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" type="button" onClick={() => setCreateOpen(false)}>Cancel</Button>
+              <Button type="submit">Publish Listing</Button>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>

@@ -5,8 +5,9 @@ import StatusBadge from '@/components/erp/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Plus, Info } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -42,19 +43,18 @@ const HealthVaccination = () => {
   const vacRowClass = (status: string) => {
     if (status === 'Overdue') return 'bg-red-50';
     if (status === 'Upcoming') return 'bg-amber-50';
-    if (status === 'Completed') return 'bg-green-50';
     return '';
   };
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-foreground mb-4">Health & Vaccination</h1>
+    <div className="space-y-4">
+      <h1 className="text-2xl font-bold text-foreground">Health & Vaccination</h1>
 
       {!isVet && (
-        <Card className="mb-4 border-blue-200 bg-blue-50">
-          <CardContent className="p-3 flex gap-2 items-start text-xs text-blue-800">
-            <Info className="h-4 w-4 mt-0.5 shrink-0" />
-            Health records are view-only. Contact your Veterinarian to add or edit records.
+        <Card className="border-sw-sky-400/30 bg-sw-sky-400/5">
+          <CardContent className="p-3 flex gap-2 items-start text-xs">
+            <Info className="h-4 w-4 mt-0.5 shrink-0 text-sw-sky-400" />
+            <span className="text-foreground/70">Health records are view-only. Contact your Veterinarian to add or edit records.</span>
           </CardContent>
         </Card>
       )}
@@ -65,60 +65,64 @@ const HealthVaccination = () => {
           <TabsTrigger value="vaccinations">Vaccinations</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="treatments">
+        <TabsContent value="treatments" className="space-y-4">
           {isVet && (
-            <div className="mb-3 flex justify-end">
-              <Button onClick={() => setAddTreatment(true)} className="gap-1"><Plus className="h-4 w-4" /> Add Treatment</Button>
+            <div className="flex justify-end">
+              <Button onClick={() => setAddTreatment(true)} className="gap-1.5"><Plus className="h-4 w-4" /> Add Treatment</Button>
             </div>
           )}
-          <div className="overflow-x-auto rounded-lg border border-border">
-            <Table>
-              <TableHeader><TableRow className="bg-muted/50">
-                <TableHead>Cattle</TableHead><TableHead>Date</TableHead><TableHead>Condition</TableHead><TableHead>Treatment</TableHead><TableHead>Medicine</TableHead><TableHead>Cost</TableHead><TableHead>Outcome</TableHead><TableHead>Vet</TableHead>
-              </TableRow></TableHeader>
-              <TableBody>
-                {treatmentData.map(t => (
-                  <TableRow key={t.id}>
-                    <TableCell className="font-mono text-xs">{t.cattleId}</TableCell>
-                    <TableCell>{t.date}</TableCell>
-                    <TableCell>{t.condition}</TableCell>
-                    <TableCell>{t.treatment}</TableCell>
-                    <TableCell className="text-xs">{t.medicine}</TableCell>
-                    <TableCell>PKR {t.cost.toLocaleString()}</TableCell>
-                    <TableCell><StatusBadge status={t.outcome} pulse={t.outcome === 'Ongoing'} /></TableCell>
-                    <TableCell>{t.vet}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader><TableRow>
+                  <TableHead>Cattle</TableHead><TableHead>Date</TableHead><TableHead>Condition</TableHead><TableHead>Treatment</TableHead><TableHead>Medicine</TableHead><TableHead>Cost</TableHead><TableHead>Outcome</TableHead><TableHead>Vet</TableHead>
+                </TableRow></TableHeader>
+                <TableBody>
+                  {treatmentData.map(t => (
+                    <TableRow key={t.id}>
+                      <TableCell className="font-mono text-xs">{t.cattleId}</TableCell>
+                      <TableCell>{t.date}</TableCell>
+                      <TableCell>{t.condition}</TableCell>
+                      <TableCell>{t.treatment}</TableCell>
+                      <TableCell className="text-xs">{t.medicine}</TableCell>
+                      <TableCell>PKR {t.cost.toLocaleString()}</TableCell>
+                      <TableCell><StatusBadge status={t.outcome} /></TableCell>
+                      <TableCell>{t.vet}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </TabsContent>
 
-        <TabsContent value="vaccinations">
+        <TabsContent value="vaccinations" className="space-y-4">
           {isVet && (
-            <div className="mb-3 flex justify-end">
-              <Button onClick={() => setAddVaccination(true)} className="gap-1"><Plus className="h-4 w-4" /> Add Vaccination</Button>
+            <div className="flex justify-end">
+              <Button onClick={() => setAddVaccination(true)} className="gap-1.5"><Plus className="h-4 w-4" /> Add Vaccination</Button>
             </div>
           )}
-          <div className="overflow-x-auto rounded-lg border border-border">
-            <Table>
-              <TableHeader><TableRow className="bg-muted/50">
-                <TableHead>Cattle</TableHead><TableHead>Vaccine</TableHead><TableHead>Date Given</TableHead><TableHead>Next Due</TableHead><TableHead>Status</TableHead><TableHead>Vet</TableHead>
-              </TableRow></TableHeader>
-              <TableBody>
-                {vaccinationData.map(v => (
-                  <TableRow key={v.id} className={vacRowClass(v.status)}>
-                    <TableCell className="font-mono text-xs">{v.cattleId}</TableCell>
-                    <TableCell>{v.vaccine}</TableCell>
-                    <TableCell>{v.dateGiven || '—'}</TableCell>
-                    <TableCell>{v.nextDue}</TableCell>
-                    <TableCell><StatusBadge status={v.status} pulse={v.status === 'Overdue'} /></TableCell>
-                    <TableCell>{v.vet || '—'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader><TableRow>
+                  <TableHead>Cattle</TableHead><TableHead>Vaccine</TableHead><TableHead>Date Given</TableHead><TableHead>Next Due</TableHead><TableHead>Status</TableHead><TableHead>Vet</TableHead>
+                </TableRow></TableHeader>
+                <TableBody>
+                  {vaccinationData.map(v => (
+                    <TableRow key={v.id} className={vacRowClass(v.status)}>
+                      <TableCell className="font-mono text-xs">{v.cattleId}</TableCell>
+                      <TableCell>{v.vaccine}</TableCell>
+                      <TableCell>{v.dateGiven || '—'}</TableCell>
+                      <TableCell>{v.nextDue}</TableCell>
+                      <TableCell><StatusBadge status={v.status} /></TableCell>
+                      <TableCell>{v.vet || '—'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
@@ -126,18 +130,47 @@ const HealthVaccination = () => {
       <Dialog open={addTreatment} onOpenChange={setAddTreatment}>
         <DialogContent>
           <DialogHeader><DialogTitle>Add Treatment</DialogTitle></DialogHeader>
-          <form onSubmit={handleAddTreatment} className="space-y-3">
-            <Input name="cattleId" placeholder="Cattle ID (e.g. F001-0001)" required />
-            <Input name="date" type="date" required />
-            <Input name="condition" placeholder="Condition / Diagnosis" required />
-            <Input name="treatment" placeholder="Treatment given" required />
-            <Input name="medicine" placeholder="Medicine + dosage" required />
-            <Input name="cost" type="number" placeholder="Cost (PKR)" required />
-            <p className="text-[10px] text-muted-foreground">Cost auto-posts to Finance as Medical expense</p>
-            <select name="outcome" required className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm">
-              <option value="Recovered">Recovered</option><option value="Ongoing">Ongoing</option><option value="Died">Died</option>
-            </select>
-            <Button type="submit" className="w-full">Save Treatment</Button>
+          <form onSubmit={handleAddTreatment} className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Cattle ID</label>
+              <Input name="cattleId" placeholder="e.g. F001-0001" required />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Date</label>
+              <Input name="date" type="date" required />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Condition / Diagnosis</label>
+              <Input name="condition" placeholder="e.g. Foot rot" required />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Treatment Given</label>
+              <Input name="treatment" placeholder="e.g. Antibiotics course" required />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Medicine + Dosage</label>
+              <Input name="medicine" placeholder="e.g. Oxytetracycline 20ml" required />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Cost (PKR)</label>
+              <Input name="cost" type="number" placeholder="e.g. 500" required />
+              <p className="text-[10px] text-muted-foreground">Cost auto-posts to Finance as Medical expense</p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Outcome</label>
+              <Select name="outcome" required defaultValue="Recovered">
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Recovered">Recovered</SelectItem>
+                  <SelectItem value="Ongoing">Ongoing</SelectItem>
+                  <SelectItem value="Died">Died</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" type="button" onClick={() => setAddTreatment(false)}>Cancel</Button>
+              <Button type="submit">Save Treatment</Button>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
@@ -146,15 +179,36 @@ const HealthVaccination = () => {
       <Dialog open={addVaccination} onOpenChange={setAddVaccination}>
         <DialogContent>
           <DialogHeader><DialogTitle>Add Vaccination</DialogTitle></DialogHeader>
-          <form onSubmit={(e) => { e.preventDefault(); setAddVaccination(false); toast({ title: 'Vaccination recorded' }); }} className="space-y-3">
-            <Input name="cattleId" placeholder="Cattle ID" required />
-            <select name="vaccine" required className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm">
-              {['FMD', 'HS', 'BQ', 'LSD', 'Deworming'].map(v => <option key={v} value={v}>{v}</option>)}
-            </select>
-            <Input name="dateGiven" type="date" required />
-            <Input name="nextDue" type="date" required />
-            <Input name="notes" placeholder="Notes (optional)" />
-            <Button type="submit" className="w-full">Save Vaccination</Button>
+          <form onSubmit={(e) => { e.preventDefault(); setAddVaccination(false); toast({ title: 'Vaccination recorded' }); }} className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Cattle ID</label>
+              <Input name="cattleId" placeholder="e.g. F001-0001" required />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Vaccine</label>
+              <Select name="vaccine" required defaultValue="FMD">
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {['FMD', 'HS', 'BQ', 'LSD', 'Deworming'].map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Date Given</label>
+              <Input name="dateGiven" type="date" required />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Next Due</label>
+              <Input name="nextDue" type="date" required />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Notes (optional)</label>
+              <Input name="notes" placeholder="Any additional notes" />
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" type="button" onClick={() => setAddVaccination(false)}>Cancel</Button>
+              <Button type="submit">Save Vaccination</Button>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
