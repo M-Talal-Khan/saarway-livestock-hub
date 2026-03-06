@@ -45,25 +45,26 @@ const ERPSidebar = () => {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border bg-white">
-      <SidebarHeader className="p-4 border-b border-border">
-        {!collapsed && (
-          <div className="flex items-center gap-2">
+      <SidebarHeader className="p-5 border-b border-border">
+        {!collapsed ? (
+          <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">SW</span>
             </div>
-            <span className="font-bold text-foreground">Saarway ERP</span>
+            <div>
+              <span className="font-bold text-foreground text-sm">Saarway ERP</span>
+            </div>
           </div>
-        )}
-        {collapsed && (
+        ) : (
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center mx-auto">
             <span className="text-primary-foreground font-bold text-sm">SW</span>
           </div>
         )}
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="p-2">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-0.5">
               {visibleModules.map((item) => {
                 const isActive = location.pathname === item.url;
                 const isAllowed = item.roles.includes(role);
@@ -76,20 +77,20 @@ const ERPSidebar = () => {
                         if (!item.disabled && isAllowed) navigate(item.url);
                       }}
                       className={`
-                        rounded-lg transition-colors duration-200
+                        rounded-lg transition-all duration-200 py-2.5
                         ${isActive
-                          ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                          : 'hover:bg-sw-green-100'
+                          ? 'bg-primary text-primary-foreground hover:bg-primary/90 border-l-[3px] border-l-sw-green-700'
+                          : 'hover:bg-sw-green-100 text-muted-foreground hover:text-foreground border-l-[3px] border-l-transparent'
                         }
                         ${item.disabled || !isAllowed ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                       `}
                     >
-                      {item.disabled ? <Lock className="h-4 w-4" /> : <item.icon className="h-4 w-4" />}
+                      {item.disabled ? <Lock className="h-4 w-4 shrink-0" /> : <item.icon className="h-4 w-4 shrink-0" />}
                       {!collapsed && (
-                        <span className="flex items-center gap-2">
+                        <span className="flex items-center gap-2 text-sm font-medium">
                           {item.title}
                           {item.comingSoon && (
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Soon</Badge>
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">Soon</Badge>
                           )}
                         </span>
                       )}
