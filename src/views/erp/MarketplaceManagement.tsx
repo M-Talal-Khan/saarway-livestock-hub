@@ -27,11 +27,11 @@ const MarketplaceManagement = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Marketplace Management</h1>
+        <h1 className="text-2xl font-bold text-foreground erp-slide-up">Marketplace Management</h1>
         <Button onClick={() => setCreateOpen(true)} className="gap-1.5"><Plus className="h-4 w-4" /> Create Listing</Button>
       </div>
 
-      <Card className="border-sw-gold-400/30 bg-sw-gold-400/5">
+      <Card className="border-sw-gold-400/30 bg-sw-gold-400/5 erp-glass-card-subtle erp-stagger-1">
         <CardContent className="p-3 flex gap-2 items-start text-xs">
           <Info className="h-4 w-4 mt-0.5 shrink-0 text-sw-gold-400" />
           <span className="text-foreground/70">Platform charges PKR 50 per listing (one-time) + PKR 50 per active animal per month (subscription). Fees are tracked by Super Admin.</span>
@@ -39,7 +39,7 @@ const MarketplaceManagement = () => {
       </Card>
 
       {listedAnimals.length === 0 ? (
-        <Card>
+        <Card className="erp-glass-card-subtle">
           <CardContent className="py-16 text-center text-muted-foreground">
             <p>No active listings. Create one to get started.</p>
           </CardContent>
@@ -47,7 +47,7 @@ const MarketplaceManagement = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {listedAnimals.map(a => (
-            <Card key={a.id} className="overflow-hidden">
+            <Card key={a.id} className="overflow-hidden erp-glass-card">
               <div className="h-36 bg-sw-green-50 flex items-center justify-center text-muted-foreground text-sm">
                 Photo placeholder
               </div>

@@ -47,28 +47,24 @@ const ERPSidebar = () => {
   const visibleModules = modules.filter(m => m.roles.includes(role) || m.comingSoon);
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border bg-white">
-      <SidebarHeader className={`border-b border-border ${collapsed ? 'p-2 flex items-center justify-center' : 'p-5'}`}>
-        {!collapsed ? (
-          <div className="flex items-center gap-2.5">
-            <Image src="/images/logo-icon-v2.png" alt="Saarway" width={32} height={32} />
-            <span className="font-bold text-foreground text-sm">Saarway ERP</span>
-          </div>
-        ) : (
-          <div className="flex items-center justify-center w-full">
-            <Image src="/images/logo-icon-v2.png" alt="Saarway" width={24} height={24} />
-          </div>
-        )}
+    <Sidebar collapsible="icon" className="border-r border-white/10 bg-[#0a1a0a] [&_[data-sidebar]]:bg-[#0a1a0a]">
+      <SidebarHeader className={`border-b border-white/10 ${collapsed ? 'p-3 flex items-center justify-center' : 'p-5'}`}>
+        <div className="flex items-center gap-2.5">
+          <Image src="/images/logo-icon-v2.png" alt="Saarway" width={32} height={32} className="shrink-0" />
+          {!collapsed && (
+            <span className="font-bold text-white text-sm tracking-wide sw-fade-in">Saarway ERP</span>
+          )}
+        </div>
       </SidebarHeader>
-      <SidebarContent className="p-2">
+      <SidebarContent className="p-2 [&_*]:border-0">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5">
-              {visibleModules.map((item) => {
+            <SidebarMenu className="space-y-1">
+              {visibleModules.map((item, index) => {
                 const isActive = pathname === item.url;
                 const isAllowed = item.roles.includes(role);
                 return (
-                  <SidebarMenuItem key={item.title}>
+                  <SidebarMenuItem key={item.title} style={{ animationDelay: `${index * 40}ms` }} className="sw-slide-in">
                     <SidebarMenuButton
                       isActive={isActive}
                       tooltip={item.title}
@@ -76,20 +72,30 @@ const ERPSidebar = () => {
                         if (!item.disabled && isAllowed) router.push(item.url);
                       }}
                       className={`
-                        rounded-lg transition-all duration-200 py-2.5
+                        rounded-lg transition-all duration-300 py-2.5 group/btn relative overflow-hidden
+                        ${collapsed ? 'justify-center px-0' : ''}
                         ${isActive
-                          ? 'bg-primary text-primary-foreground hover:bg-primary/90 border-l-[3px] border-l-sw-green-700'
-                          : 'hover:bg-sw-green-100 text-muted-foreground hover:text-foreground border-l-[3px] border-l-transparent'
+                          ? 'bg-gradient-to-r from-primary/30 to-primary/10 text-white shadow-[0_0_20px_rgba(61,184,61,0.15)] border-l-[3px] border-l-primary'
+                          : 'hover:bg-white/8 text-white/60 hover:text-white border-l-[3px] border-l-transparent'
                         }
-                        ${item.disabled || !isAllowed ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                        ${item.disabled || !isAllowed ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}
                       `}
                     >
-                      {item.disabled ? <Lock className="h-4 w-4 shrink-0" /> : <item.icon className="h-4 w-4 shrink-0" />}
+                      {isActive && (
+                        <span className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent animate-pulse-subtle pointer-events-none" />
+                      )}
+                      <span className={`relative z-10 flex items-center justify-center shrink-0 transition-all duration-300 ${
+                        isActive
+                          ? 'text-primary drop-shadow-[0_0_8px_rgba(61,184,61,0.6)]'
+                          : 'text-white/50 group-hover/btn:text-white/90'
+                        } ${collapsed ? 'w-5 h-5 mx-auto' : 'w-4 h-4'}`}>
+                        {item.disabled ? <Lock className="h-full w-full" /> : <item.icon className="h-full w-full" />}
+                      </span>
                       {!collapsed && (
-                        <span className="flex items-center gap-2 text-sm font-medium">
+                        <span className="relative z-10 flex items-center gap-2 text-sm font-medium">
                           {item.title}
                           {item.comingSoon && (
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">Soon</Badge>
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 bg-white/10 text-white/70 border-0">Soon</Badge>
                           )}
                         </span>
                       )}

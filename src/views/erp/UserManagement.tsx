@@ -51,11 +51,11 @@ const UserManagement = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">User Management</h1>
+        <h1 className="text-2xl font-bold text-foreground erp-slide-up">User Management</h1>
         <Button onClick={() => setAddOpen(true)} className="gap-1.5"><Plus className="h-4 w-4" /> Add User</Button>
       </div>
 
-      <Card>
+      <Card className="erp-glass-card-subtle erp-stagger-1">
         <CardContent className="p-0">
           <Table>
             <TableHeader><TableRow>
@@ -63,7 +63,7 @@ const UserManagement = () => {
             </TableRow></TableHeader>
             <TableBody>
               {users.map(u => (
-                <TableRow key={u.username}>
+                <TableRow key={u.username} className="erp-table-row">
                   <TableCell className="font-mono text-xs">{u.username}</TableCell>
                   <TableCell className="font-medium">{u.fullName}</TableCell>
                   <TableCell><Badge variant="secondary" className={`${roleColors[u.role]} border-0`}>{u.role}</Badge></TableCell>

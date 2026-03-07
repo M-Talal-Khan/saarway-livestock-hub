@@ -20,7 +20,7 @@ const StationsOverview = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto py-8">
+    <div className="max-w-3xl mx-auto py-8 erp-slide-up">
       <div className="mb-8 text-center">
         <h1 className="text-2xl font-bold text-foreground">Select a Station</h1>
         <p className="text-muted-foreground mt-1">{currentFarm?.name || 'GRASS Farms'} — {erpStations.length} Stations</p>
@@ -30,11 +30,11 @@ const StationsOverview = () => {
         {erpStations.map(station => (
           <Card
             key={station.tag}
-            className="cursor-pointer group"
+            className="cursor-pointer group erp-glass-card"
             onClick={() => handleSelect(station)}
           >
             <CardContent className="p-8 flex flex-col items-center text-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center group-hover:bg-sw-green-700 transition-colors">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-sw-green-700 flex items-center justify-center group-hover:shadow-[0_0_20px_rgba(61,184,61,0.4)] transition-all duration-300">
                 <span className="text-primary-foreground font-bold text-xl">{station.tag}</span>
               </div>
               <div>

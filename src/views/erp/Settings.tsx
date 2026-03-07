@@ -38,7 +38,7 @@ const SettingsPage = () => {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+      <h1 className="text-2xl font-bold text-foreground erp-slide-up">Settings</h1>
 
       <Tabs defaultValue="farm">
         <TabsList>
@@ -50,7 +50,7 @@ const SettingsPage = () => {
         </TabsList>
 
         <TabsContent value="farm">
-          <Card>
+          <Card className="erp-glass-card-subtle">
             <CardContent className="p-6 space-y-5 max-w-lg">
               {[
                 { label: 'Farm Name', defaultValue: 'GRASS Farms' },
@@ -84,7 +84,7 @@ const SettingsPage = () => {
           <div className="flex justify-end">
             <Button onClick={() => setAddStation(true)} className="gap-1.5"><Plus className="h-4 w-4" /> Add New Station</Button>
           </div>
-          <Card>
+          <Card className="erp-glass-card-subtle">
             <CardContent className="p-0">
               <Table>
                 <TableHeader><TableRow>
@@ -92,7 +92,7 @@ const SettingsPage = () => {
                 </TableRow></TableHeader>
                 <TableBody>
                   {erpStations.map(s => (
-                    <TableRow key={s.tag}>
+                    <TableRow key={s.tag} className="erp-table-row">
                       <TableCell className="font-medium">{s.name}</TableCell>
                       <TableCell>{s.location}</TableCell>
                       <TableCell><StatusBadge status={s.type} /></TableCell>
@@ -134,7 +134,7 @@ const SettingsPage = () => {
         </TabsContent>
 
         <TabsContent value="notifications">
-          <Card>
+          <Card className="erp-glass-card-subtle">
             <CardContent className="p-6 space-y-5 max-w-lg">
               {notificationPrefs.map(n => (
                 <div key={n.id} className="flex items-center justify-between py-1">
@@ -150,7 +150,7 @@ const SettingsPage = () => {
         </TabsContent>
 
         <TabsContent value="security">
-          <Card>
+          <Card className="erp-glass-card-subtle">
             <CardContent className="p-6 space-y-5 max-w-lg">
               <p className="text-sm text-muted-foreground">Change password for the currently logged-in Admin account.</p>
               <div className="space-y-2"><Label>Current Password</Label><Input type="password" /></div>
@@ -162,7 +162,7 @@ const SettingsPage = () => {
         </TabsContent>
 
         <TabsContent value="defaults">
-          <Card>
+          <Card className="erp-glass-card-subtle">
             <CardContent className="p-6 space-y-6 max-w-lg">
               <div className="space-y-2">
                 <Label>Default Transport Cost (per animal)</Label>

@@ -51,18 +51,18 @@ const Buying = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Buying</h1>
+        <h1 className="text-2xl font-bold text-foreground erp-slide-up">Buying</h1>
         <Button onClick={() => { setAddOpen(true); setStep(1); setAnimals([]); }} className="gap-1.5"><Plus className="h-4 w-4" /> Add Purchase</Button>
       </div>
 
-      <Card className="border-sw-sky-400/30 bg-sw-sky-400/5">
+      <Card className="border-sw-sky-400/30 bg-sw-sky-400/5 erp-glass-card-subtle erp-stagger-1">
         <CardContent className="p-3 flex gap-2 items-start text-xs">
           <Info className="h-4 w-4 mt-0.5 shrink-0 text-sw-sky-400" />
           <span className="text-foreground/70">Each animal will appear in Cattle Management with status 'Active'. Total cost auto-posts to Finance as an expense.</span>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="erp-glass-card-subtle erp-stagger-2">
         <CardContent className="p-0">
           <Table>
             <TableHeader><TableRow>
@@ -70,7 +70,7 @@ const Buying = () => {
             </TableRow></TableHeader>
             <TableBody>
               {purchases.map(p => (
-                <TableRow key={p.id}>
+                <TableRow key={p.id} className="erp-table-row">
                   <TableCell className="font-mono text-xs">{p.id}</TableCell>
                   <TableCell>{p.supplier}</TableCell>
                   <TableCell>{p.date}</TableCell>

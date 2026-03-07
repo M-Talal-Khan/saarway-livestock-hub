@@ -60,7 +60,7 @@ const exportCSV = (data: Record<string, unknown>[], filename: string) => {
 
 const Reports = () => (
   <div className="space-y-4">
-    <h1 className="text-2xl font-bold text-foreground">Reports</h1>
+    <h1 className="text-2xl font-bold text-foreground erp-slide-up">Reports</h1>
 
     <Tabs defaultValue="cattle">
       <TabsList>
@@ -76,7 +76,7 @@ const Reports = () => (
           <Button variant="outline" size="sm" className="gap-1.5" onClick={() => exportCSV(cattle as any, 'cattle-report')}><Download className="h-4 w-4" />Export CSV</Button>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
+          <Card className="erp-glass-card-subtle">
             <CardHeader className="pb-2"><CardTitle className="text-base">Status Breakdown</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={260}>
@@ -97,7 +97,7 @@ const Reports = () => (
               </ResponsiveContainer>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="erp-glass-card-subtle">
             <CardHeader className="pb-2"><CardTitle className="text-base">Total Animals Over Time</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={260}>
@@ -123,7 +123,7 @@ const Reports = () => (
         <div className="flex justify-end">
           <Button variant="outline" size="sm" className="gap-1.5" onClick={() => exportCSV(sales as any, 'sales-report')}><Download className="h-4 w-4" />Export CSV</Button>
         </div>
-        <Card>
+        <Card className="erp-glass-card-subtle">
           <CardHeader className="pb-2"><CardTitle className="text-base">Revenue by Period</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={260}>
@@ -149,7 +149,7 @@ const Reports = () => (
                 <TableHead>ID</TableHead><TableHead>Date</TableHead><TableHead>Type</TableHead><TableHead>Animals</TableHead><TableHead className="text-right">Total</TableHead>
               </TableRow></TableHeader>
               <TableBody>{sales.map(s => (
-                <TableRow key={s.id}><TableCell className="font-mono text-xs">{s.id}</TableCell><TableCell>{s.date}</TableCell>
+                <TableRow key={s.id} className="erp-table-row"><TableCell className="font-mono text-xs">{s.id}</TableCell><TableCell>{s.date}</TableCell>
                   <TableCell><StatusBadge status={s.type} /></TableCell><TableCell>{s.animals}</TableCell>
                   <TableCell className="text-right font-medium">PKR {s.total.toLocaleString()}</TableCell></TableRow>
               ))}</TableBody>
@@ -165,7 +165,7 @@ const Reports = () => (
             { label: 'Overdue Vaccinations', value: String(vaccinations.filter(v => v.status === 'Overdue').length), color: 'text-destructive', border: 'border-l-[3px] border-l-destructive' },
             { label: 'Active Treatments', value: '2', color: 'text-sw-gold-400', border: 'border-l-[3px] border-l-sw-gold-400' },
           ].map(s => (
-            <Card key={s.label} className={`${s.border} hover:-translate-y-1`}>
+            <Card key={s.label} className={`${s.border} erp-glass-card`}>
               <CardContent className="p-5 text-center">
                 <p className="text-sm text-muted-foreground">{s.label}</p>
                 <p className={`text-3xl font-bold mt-1 ${s.color}`}>{s.value}</p>
@@ -180,10 +180,10 @@ const Reports = () => (
           <Button variant="outline" size="sm" className="gap-1.5" onClick={() => exportCSV(transactions as any, 'finance-report')}><Download className="h-4 w-4" />Export CSV</Button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Card className="border-l-[3px] border-l-primary hover:-translate-y-1">
+          <Card className="border-l-[3px] border-l-primary erp-glass-card">
             <CardContent className="p-5"><p className="text-sm text-muted-foreground">Total Income</p><p className="text-2xl font-bold text-sw-green-700 mt-1">PKR 1,820,000</p></CardContent>
           </Card>
-          <Card className="border-l-[3px] border-l-destructive hover:-translate-y-1">
+          <Card className="border-l-[3px] border-l-destructive erp-glass-card">
             <CardContent className="p-5"><p className="text-sm text-muted-foreground">Total Expenses</p><p className="text-2xl font-bold text-destructive mt-1">PKR 580,000</p></CardContent>
           </Card>
         </div>
@@ -197,7 +197,7 @@ const Reports = () => (
                 <TableHead>Station</TableHead><TableHead>Type</TableHead><TableHead>Rent</TableHead><TableHead>Status</TableHead><TableHead>Contract</TableHead>
               </TableRow></TableHeader>
               <TableBody>{erpStations.map(s => (
-                <TableRow key={s.tag}><TableCell className="font-medium">{s.name}</TableCell><TableCell><StatusBadge status={s.type} /></TableCell>
+                <TableRow key={s.tag} className="erp-table-row"><TableCell className="font-medium">{s.name}</TableCell><TableCell><StatusBadge status={s.type} /></TableCell>
                   <TableCell>{s.rentAmount ? `PKR ${s.rentAmount.toLocaleString()}` : '—'}</TableCell>
                   <TableCell>{s.paymentStatus ? <StatusBadge status={s.paymentStatus} /> : '—'}</TableCell>
                   <TableCell className="text-xs">{s.contractStart ? `${s.contractStart} → ${s.contractEnd}` : '—'}</TableCell></TableRow>

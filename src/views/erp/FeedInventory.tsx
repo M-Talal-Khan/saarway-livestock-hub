@@ -64,8 +64,8 @@ const FeedInventory = () => {
   // Delete confirmation
   const [deleteModal, setDeleteModal] = useState<{ type: 'feed' | 'consumption'; id: number } | null>(null);
 
-  // Stock management filters — locked for non-admin
-  const [selectedStation, setSelectedStation] = useState<string>(isStationLocked ? assignedStation : 'all');
+  // Stock management filters — locked for non-admin; admin defaults to current station
+  const [selectedStation, setSelectedStation] = useState<string>(isStationLocked ? assignedStation : (isAdmin && currentStation?.name ? currentStation.name : 'all'));
 
   // Derived: which stations to show data for
   const effectiveStations = isStationLocked ? [assignedStation] : (selectedStation === 'all' ? stationNames : [selectedStation]);
@@ -229,7 +229,7 @@ const FeedInventory = () => {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2 erp-slide-up">
             <Wheat className="h-6 w-6 text-primary" />
             Feed & Inventory
           </h1>
@@ -250,7 +250,7 @@ const FeedInventory = () => {
             <div className="flex justify-end">
               <Button onClick={openAddFeed} className="gap-1.5"><Plus className="h-4 w-4" />Add Feed Item</Button>
             </div>
-            <Card className="p-0">
+            <Card className="p-0 erp-glass-card-subtle erp-stagger-1">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -264,7 +264,7 @@ const FeedInventory = () => {
                 </TableHeader>
                 <TableBody>
                   {feedItemsList.map(f => (
-                    <TableRow key={f.id}>
+                    <TableRow key={f.id} className="erp-table-row">
                       <TableCell className="font-medium">{f.name}</TableCell>
                       <TableCell>{f.unit}</TableCell>
                       <TableCell className="text-right">{f.costPerUnit.toLocaleString()}</TableCell>
@@ -322,7 +322,7 @@ const FeedInventory = () => {
                       const level = getStockLevel(s.currentStock, s.threshold);
                       const pct = Math.min((s.currentStock / (s.threshold * 3)) * 100, 100);
                       return (
-                        <Card key={s.feed} className={`border-l-[3px] ${level === 'red' ? 'border-l-destructive' : level === 'amber' ? 'border-l-amber-500' : 'border-l-primary'} hover:-translate-y-1`}>
+                        <Card key={s.feed} className={`border-l-[3px] ${level === 'red' ? 'border-l-destructive' : level === 'amber' ? 'border-l-amber-500' : 'border-l-primary'} erp-glass-card`}>
                           <CardContent className="p-4 space-y-3">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
@@ -351,7 +351,7 @@ const FeedInventory = () => {
             })}
 
             {/* Stock History Table */}
-            <Card className="p-0">
+            <Card className="p-0 erp-glass-card-subtle erp-stagger-2">
               <CardHeader className="pb-3"><CardTitle className="text-base">Stock History</CardTitle></CardHeader>
               <CardContent className="p-0">
                 <Table>
@@ -368,7 +368,7 @@ const FeedInventory = () => {
                   </TableHeader>
                   <TableBody>
                     {filteredStockHistory.map(e => (
-                      <TableRow key={e.id}>
+                      <TableRow key={e.id} className="erp-table-row">
                         <TableCell>{e.date}</TableCell>
                         <TableCell className="font-medium">{e.feedItem}</TableCell>
                         <TableCell>{e.station}</TableCell>
@@ -396,7 +396,7 @@ const FeedInventory = () => {
               <Plus className="h-4 w-4" />Log Consumption
             </Button>
           </div>
-          <Card className="p-0">
+          <Card className="p-0 erp-glass-card-subtle erp-stagger-1">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -411,7 +411,7 @@ const FeedInventory = () => {
               </TableHeader>
               <TableBody>
                 {filteredConsumption.map(c => (
-                  <TableRow key={c.id}>
+                  <TableRow key={c.id} className="erp-table-row">
                     <TableCell>{c.date}</TableCell>
                     <TableCell>{c.station}</TableCell>
                     <TableCell className="font-medium">{c.feed}</TableCell>

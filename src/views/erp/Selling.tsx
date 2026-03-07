@@ -29,18 +29,18 @@ const Selling = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Selling</h1>
+        <h1 className="text-2xl font-bold text-foreground erp-slide-up">Selling</h1>
         <Button onClick={() => { setAddOpen(true); setSaleMode(null); }} className="gap-1.5"><Plus className="h-4 w-4" /> Add Sale</Button>
       </div>
 
-      <Card className="border-sw-sky-400/30 bg-sw-sky-400/5">
+      <Card className="border-sw-sky-400/30 bg-sw-sky-400/5 erp-glass-card-subtle erp-stagger-1">
         <CardContent className="p-3 flex gap-2 items-start text-xs">
           <Info className="h-4 w-4 mt-0.5 shrink-0 text-sw-sky-400" />
           <span className="text-foreground/70">Sale auto-posts income to Finance. If the animal was listed on the Marketplace, the listing is automatically removed.</span>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="erp-glass-card-subtle erp-stagger-2">
         <CardContent className="p-0">
           <Table>
             <TableHeader><TableRow>
@@ -48,7 +48,7 @@ const Selling = () => {
             </TableRow></TableHeader>
             <TableBody>
               {sales.map(s => (
-                <TableRow key={s.id}>
+                <TableRow key={s.id} className="erp-table-row">
                   <TableCell className="font-mono text-xs">{s.id}</TableCell>
                   <TableCell>{s.date}</TableCell>
                   <TableCell><StatusBadge status={s.type} /></TableCell>
@@ -68,7 +68,7 @@ const Selling = () => {
 
           {!saleMode && (
             <div className="grid grid-cols-2 gap-4">
-              <Card className="cursor-pointer group" onClick={() => setSaleMode('single')}>
+              <Card className="cursor-pointer group erp-glass-card" onClick={() => setSaleMode('single')}>
                 <CardContent className="p-6 text-center space-y-2">
                   <div className="mx-auto w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                     <User className="h-5 w-5 text-primary" />
@@ -77,7 +77,7 @@ const Selling = () => {
                   <p className="text-xs text-muted-foreground">Sell one animal individually</p>
                 </CardContent>
               </Card>
-              <Card className="cursor-pointer group" onClick={() => setSaleMode('bulk')}>
+              <Card className="cursor-pointer group erp-glass-card" onClick={() => setSaleMode('bulk')}>
                 <CardContent className="p-6 text-center space-y-2">
                   <div className="mx-auto w-10 h-10 rounded-full bg-sw-gold-400/10 flex items-center justify-center">
                     <Package className="h-5 w-5 text-sw-gold-400" />

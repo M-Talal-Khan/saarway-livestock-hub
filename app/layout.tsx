@@ -13,6 +13,10 @@ export const metadata: Metadata = {
   title: "Saarway — Pakistan's First Livestock ERP & Marketplace",
   description:
     "Manage your farm digitally and connect with buyers across Pakistan. Farm. Track. Thrive.",
+  icons: {
+    icon: "/images/logo-icon-v2.png",
+    apple: "/images/logo-icon-v2.png",
+  },
   openGraph: {
     title: "Saarway — Pakistan's First Livestock ERP & Marketplace",
     description:

@@ -30,7 +30,7 @@ export default function ERPLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-sw-green-50">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-sw-green-50 via-white to-sw-green-50/60">
         {showSidebar && <ERPSidebar />}
         <div className="flex-1 flex flex-col min-w-0">
           <ERPTopBar />

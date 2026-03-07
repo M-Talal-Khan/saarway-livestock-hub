@@ -73,11 +73,11 @@ const FinanceRent = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-foreground">Finance & Rent</h1>
+      <h1 className="text-2xl font-bold text-foreground erp-slide-up">Finance & Rent</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {statCards.map(s => (
-          <Card key={s.label} className={`${s.border} hover:-translate-y-1`}>
+          <Card key={s.label} className={`${s.border} erp-glass-card`}>
             <CardContent className="p-5 flex items-start gap-4">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${s.bg}`}>
                 <s.icon className={`h-5 w-5 ${s.color}`} />
@@ -92,7 +92,7 @@ const FinanceRent = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="erp-glass-card-subtle erp-stagger-4">
           <CardHeader className="pb-2"><CardTitle className="text-base">Income vs Expenses</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={260}>
@@ -117,7 +117,7 @@ const FinanceRent = () => {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="erp-glass-card-subtle erp-stagger-5">
           <CardHeader className="pb-2"><CardTitle className="text-base">Top Expenses</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={260}>
@@ -183,7 +183,7 @@ const FinanceRent = () => {
                 <TableHead>Date</TableHead><TableHead>Category</TableHead><TableHead>Description</TableHead><TableHead>Station</TableHead><TableHead className="text-right">Amount</TableHead>
               </TableRow></TableHeader>
               <TableBody>{expenses.map(t => (
-                <TableRow key={t.id}>
+                <TableRow key={t.id} className="erp-table-row">
                   <TableCell>{t.date}</TableCell><TableCell><StatusBadge status={t.category} /></TableCell>
                   <TableCell className="text-sm">{t.description}</TableCell><TableCell>{t.station}</TableCell>
                   <TableCell className="text-right font-medium text-destructive">-PKR {t.amount.toLocaleString()}</TableCell>
@@ -200,7 +200,7 @@ const FinanceRent = () => {
                 <TableHead>Date</TableHead><TableHead>Source</TableHead><TableHead>Description</TableHead><TableHead>Station</TableHead><TableHead className="text-right">Amount</TableHead>
               </TableRow></TableHeader>
               <TableBody>{income.map(t => (
-                <TableRow key={t.id}>
+                <TableRow key={t.id} className="erp-table-row">
                   <TableCell>{t.date}</TableCell><TableCell>{t.category}</TableCell>
                   <TableCell className="text-sm">{t.description}</TableCell><TableCell>{t.station}</TableCell>
                   <TableCell className="text-right font-medium text-sw-green-700">+PKR {t.amount.toLocaleString()}</TableCell>
@@ -213,7 +213,7 @@ const FinanceRent = () => {
         <TabsContent value="rent">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {erpStations.map(s => (
-              <Card key={s.tag}>
+              <Card key={s.tag} className="erp-glass-card">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
                     <p className="font-semibold text-foreground">{s.name}</p>
@@ -243,7 +243,7 @@ const FinanceRent = () => {
                 <TableHead>Name</TableHead><TableHead>Role</TableHead><TableHead>Amount</TableHead><TableHead>Month</TableHead><TableHead>Date</TableHead><TableHead>Station</TableHead>
               </TableRow></TableHeader>
               <TableBody>{salaryData.map((s, i) => (
-                <TableRow key={i}>
+                <TableRow key={i} className="erp-table-row">
                   <TableCell className="font-medium">{s.name}</TableCell><TableCell>{s.role}</TableCell>
                   <TableCell className="font-medium">PKR {s.amount.toLocaleString()}</TableCell>
                   <TableCell>{s.month}</TableCell><TableCell>{s.date}</TableCell><TableCell>{s.station}</TableCell>

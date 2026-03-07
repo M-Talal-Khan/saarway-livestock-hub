@@ -50,10 +50,10 @@ const HealthVaccination = () => {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-foreground">Health & Vaccination</h1>
+      <h1 className="text-2xl font-bold text-foreground erp-slide-up">Health & Vaccination</h1>
 
       {!isVet && (
-        <Card className="border-sw-sky-400/30 bg-sw-sky-400/5">
+        <Card className="border-sw-sky-400/30 bg-sw-sky-400/5 erp-glass-card-subtle erp-stagger-1">
           <CardContent className="p-3 flex gap-2 items-start text-xs">
             <Info className="h-4 w-4 mt-0.5 shrink-0 text-sw-sky-400" />
             <span className="text-foreground/70">Health records are view-only. Contact your Veterinarian to add or edit records.</span>
@@ -73,7 +73,7 @@ const HealthVaccination = () => {
               <Button onClick={() => setAddTreatment(true)} className="gap-1.5"><Plus className="h-4 w-4" /> Add Treatment</Button>
             </div>
           )}
-          <Card>
+          <Card className="erp-glass-card-subtle erp-stagger-2">
             <CardContent className="p-0">
               <Table>
                 <TableHeader><TableRow>
@@ -81,7 +81,7 @@ const HealthVaccination = () => {
                 </TableRow></TableHeader>
                 <TableBody>
                   {treatmentData.map(t => (
-                    <TableRow key={t.id}>
+                    <TableRow key={t.id} className="erp-table-row">
                       <TableCell className="font-mono text-xs">{t.cattleId}</TableCell>
                       <TableCell>{t.date}</TableCell>
                       <TableCell>{t.condition}</TableCell>
@@ -104,7 +104,7 @@ const HealthVaccination = () => {
               <Button onClick={() => setAddVaccination(true)} className="gap-1.5"><Plus className="h-4 w-4" /> Add Vaccination</Button>
             </div>
           )}
-          <Card>
+          <Card className="erp-glass-card-subtle erp-stagger-2">
             <CardContent className="p-0">
               <Table>
                 <TableHeader><TableRow>
@@ -112,7 +112,7 @@ const HealthVaccination = () => {
                 </TableRow></TableHeader>
                 <TableBody>
                   {vaccinationData.map(v => (
-                    <TableRow key={v.id} className={vacRowClass(v.status)}>
+                    <TableRow key={v.id} className={`erp-table-row ${vacRowClass(v.status)}`}>
                       <TableCell className="font-mono text-xs">{v.cattleId}</TableCell>
                       <TableCell>{v.vaccine}</TableCell>
                       <TableCell>{v.dateGiven || '—'}</TableCell>

@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Search, Eye, Pencil, Trash2, Download, Info } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Search, Eye, Pencil, Trash2, Download, Info, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -83,14 +84,14 @@ const CattleManagement = () => {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold text-foreground">Cattle Management</h1>
+        <h1 className="text-2xl font-bold text-foreground erp-slide-up">Cattle Management</h1>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" className="gap-1.5" onClick={exportCSV}><Download className="h-4 w-4" />Export CSV</Button>
           <Button onClick={() => setAddOpen(true)} className="gap-1.5"><Plus className="h-4 w-4" /> Add Cattle</Button>
         </div>
       </div>
 
-      <Card className="border-sw-sky-400/30 bg-sw-sky-400/5">
+      <Card className="border-sw-sky-400/30 bg-sw-sky-400/5 erp-glass-card-subtle erp-stagger-1">
         <CardContent className="p-3 flex gap-2 items-start text-xs text-sw-sky-400">
           <Info className="h-4 w-4 mt-0.5 shrink-0" />
           <span className="text-foreground/70">Every new animal is automatically assigned 5 mandatory vaccinations: FMD (6 months), HS (annual), BQ (annual), LSD (annual), Deworming (3 months).</span>
@@ -114,15 +115,49 @@ const CattleManagement = () => {
         ))}
       </div>
 
+      {(breedFilter !== 'All' || statusFilter !== 'All' || genderFilter !== 'All' || stationFilter !== 'All' || search) && (
+        <div className="flex flex-wrap gap-1.5 items-center">
+          <span className="text-xs text-muted-foreground mr-1">Filters:</span>
+          {search && (
+            <Badge variant="secondary" className="gap-1 pl-2 pr-1 py-0.5 text-xs bg-primary/10 text-primary border-primary/20 cursor-pointer hover:bg-primary/20 transition-colors" onClick={() => setSearch('')}>
+              Search: {search}<X className="h-3 w-3 ml-0.5" />
+            </Badge>
+          )}
+          {breedFilter !== 'All' && (
+            <Badge variant="secondary" className="gap-1 pl-2 pr-1 py-0.5 text-xs bg-primary/10 text-primary border-primary/20 cursor-pointer hover:bg-primary/20 transition-colors" onClick={() => setBreedFilter('All')}>
+              Breed: {breedFilter}<X className="h-3 w-3 ml-0.5" />
+            </Badge>
+          )}
+          {statusFilter !== 'All' && (
+            <Badge variant="secondary" className="gap-1 pl-2 pr-1 py-0.5 text-xs bg-primary/10 text-primary border-primary/20 cursor-pointer hover:bg-primary/20 transition-colors" onClick={() => setStatusFilter('All')}>
+              Status: {statusFilter}<X className="h-3 w-3 ml-0.5" />
+            </Badge>
+          )}
+          {genderFilter !== 'All' && (
+            <Badge variant="secondary" className="gap-1 pl-2 pr-1 py-0.5 text-xs bg-primary/10 text-primary border-primary/20 cursor-pointer hover:bg-primary/20 transition-colors" onClick={() => setGenderFilter('All')}>
+              Gender: {genderFilter}<X className="h-3 w-3 ml-0.5" />
+            </Badge>
+          )}
+          {stationFilter !== 'All' && (
+            <Badge variant="secondary" className="gap-1 pl-2 pr-1 py-0.5 text-xs bg-primary/10 text-primary border-primary/20 cursor-pointer hover:bg-primary/20 transition-colors" onClick={() => setStationFilter('All')}>
+              Station: {stationFilter}<X className="h-3 w-3 ml-0.5" />
+            </Badge>
+          )}
+          <button className="text-[11px] text-muted-foreground hover:text-destructive transition-colors ml-1" onClick={() => { setSearch(''); setBreedFilter('All'); setStatusFilter('All'); setGenderFilter('All'); setStationFilter('All'); }}>
+            Clear all
+          </button>
+        </div>
+      )}
+
       {selected.size > 0 && (
-        <div className="flex items-center gap-2 p-3 bg-sw-green-50 border border-primary/20 rounded-lg text-sm">
+        <div className="flex items-center gap-2 p-3 bg-primary/5 border border-primary/20 rounded-lg text-sm erp-scale-in backdrop-blur-sm">
           <span className="font-medium">{selected.size} selected</span>
           <Button variant="outline" size="sm" className="h-7 text-xs">Change Status</Button>
           <Button variant="outline" size="sm" className="h-7 text-xs">Move Station</Button>
         </div>
       )}
 
-      <Card>
+      <Card className="erp-glass-card-subtle erp-stagger-2">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -133,7 +168,7 @@ const CattleManagement = () => {
             </TableHeader>
             <TableBody>
               {filtered.map(c => (
-                <TableRow key={c.id}>
+                <TableRow key={c.id} className="erp-table-row">
                   <TableCell><Checkbox checked={selected.has(c.id)} onCheckedChange={() => toggleSelect(c.id)} /></TableCell>
                   <TableCell className="font-mono text-xs">{c.id}</TableCell>
                   <TableCell>{c.breed}</TableCell>
