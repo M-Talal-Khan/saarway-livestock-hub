@@ -24,9 +24,25 @@ const navLinks = [
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { isLoggedIn, userName, logout } = useAuth();
+  const { isLoggedIn, buyerUser, currentUser, buyerSignOut, logout } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+
+  // Display name: buyer uses Supabase metadata, farm user uses fullName from session
+  const displayName =
+    currentUser?.fullName ??
+    buyerUser?.user_metadata?.full_name ??
+    buyerUser?.email ??
+    null;
+
+  const handleLogout = async () => {
+    if (buyerUser) {
+      await buyerSignOut();
+    } else {
+      logout();
+    }
+    router.push('/');
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -77,8 +93,8 @@ const Navbar = () => {
 
             {isLoggedIn ? (
               <div className="flex items-center gap-3 pl-2 border-l border-border">
-                <span className="text-sm font-medium text-sw-green-950/70">{userName}</span>
-                <button onClick={logout} className="text-sm text-sw-green-900 border border-border bg-sw-green-50 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 flex items-center gap-1 rounded-lg px-3 py-2 transition-all">
+                <span className="text-sm font-medium text-sw-green-950/70">{displayName}</span>
+                <button onClick={handleLogout} className="text-sm text-sw-green-900 border border-border bg-sw-green-50 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 flex items-center gap-1 rounded-lg px-3 py-2 transition-all">
                   <LogOut className="w-4 h-4" /> Logout
                 </button>
               </div>
@@ -132,8 +148,8 @@ const Navbar = () => {
               Register Your Farm
             </Link>
             {isLoggedIn ? (
-              <button onClick={logout} className="text-sm font-medium text-destructive py-3 border border-destructive/20 rounded-xl bg-destructive/5 hover:bg-destructive/10">
-                Logout ({userName})
+              <button onClick={handleLogout} className="text-sm font-medium text-destructive py-3 border border-destructive/20 rounded-xl bg-destructive/5 hover:bg-destructive/10">
+                Logout ({displayName})
               </button>
             ) : (
               <div className="grid grid-cols-2 gap-2 mt-2">

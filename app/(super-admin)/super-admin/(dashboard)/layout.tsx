@@ -11,18 +11,17 @@ export default function SuperAdminDashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isAuthenticated } = useSuperAdminAuth();
+  const { isAuthenticated, loading } = useSuperAdminAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!loading && !isAuthenticated) {
       router.replace("/super-admin");
     }
-  }, [isAuthenticated, router]);
+  }, [loading, isAuthenticated, router]);
 
-  if (!isAuthenticated) {
-    return null;
-  }
+  // Avoid flash-redirect while Supabase session is being resolved
+  if (loading || !isAuthenticated) return null;
 
   return (
     <div className="flex min-h-screen w-full">

@@ -12,8 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Loader2, KeyRound, CheckCircle2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
 
 const mandatoryVaccines = [
   { name: 'FMD', frequency: '6 months' },
@@ -32,9 +33,91 @@ const notificationPrefs = [
   { id: 'contract', label: 'Contract Expiry', desc: 'Alert before rental contracts expire' },
 ];
 
+interface SecurityTabProps {
+  currentUser: { role: string; sessionToken: string } | null;
+  resetSent: boolean;
+  resetRequesting: boolean;
+  onRequest: () => void;
+}
+
+const SecurityTab = ({ currentUser, resetSent, resetRequesting, onRequest }: SecurityTabProps) => {
+  if (!currentUser) return null;
+
+  if (currentUser.role !== 'Admin') {
+    return (
+      <Card className="erp-glass-card-subtle">
+        <CardContent className="p-6 max-w-lg">
+          <div className="flex items-start gap-3 p-4 rounded-lg bg-muted">
+            <KeyRound className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-foreground">Forgot your password?</p>
+              <p className="text-sm text-muted-foreground mt-1">Contact your farm admin to reset your password.</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (resetSent) {
+    return (
+      <Card className="erp-glass-card-subtle">
+        <CardContent className="p-6 max-w-lg">
+          <div className="flex flex-col items-center gap-3 py-6 text-center">
+            <CheckCircle2 className="w-10 h-10 text-primary" />
+            <p className="font-medium text-foreground">Password reset request sent!</p>
+            <p className="text-sm text-muted-foreground">
+              The super admin will reset your password and send the new credentials to you directly.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="erp-glass-card-subtle">
+      <CardContent className="p-6 max-w-lg space-y-4">
+        <div className="flex items-start gap-3 p-4 rounded-lg bg-muted">
+          <KeyRound className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-foreground">Password Reset via Super Admin</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Passwords are managed by the platform super admin. Click below to send a reset request — they will generate a new password and share it with you.
+            </p>
+          </div>
+        </div>
+        <Button onClick={onRequest} disabled={resetRequesting} className="gap-2">
+          {resetRequesting && <Loader2 className="w-4 h-4 animate-spin" />}
+          Request Password Reset
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
+
 const SettingsPage = () => {
+  const { currentUser } = useAuth();
   const [addStation, setAddStation] = useState(false);
   const [vaccines, setVaccines] = useState(mandatoryVaccines);
+  const [resetRequesting, setResetRequesting] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+
+  const handlePasswordResetRequest = async () => {
+    setResetRequesting(true);
+    const res = await fetch('/api/farm-auth/password-reset-request', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${currentUser?.sessionToken ?? ''}` },
+    });
+    const data = await res.json();
+    setResetRequesting(false);
+    if (!res.ok) {
+      toast({ title: 'Request failed', description: data.error, variant: 'destructive' });
+      return;
+    }
+    setResetSent(true);
+    toast({ title: 'Request sent', description: 'Super admin will reset your password and share the new one with you.' });
+  };
 
   return (
     <div className="space-y-4">
@@ -150,15 +233,12 @@ const SettingsPage = () => {
         </TabsContent>
 
         <TabsContent value="security">
-          <Card className="erp-glass-card-subtle">
-            <CardContent className="p-6 space-y-5 max-w-lg">
-              <p className="text-sm text-muted-foreground">Change password for the currently logged-in Admin account.</p>
-              <div className="space-y-2"><Label>Current Password</Label><Input type="password" /></div>
-              <div className="space-y-2"><Label>New Password</Label><Input type="password" /></div>
-              <div className="space-y-2"><Label>Confirm New Password</Label><Input type="password" /></div>
-              <Button onClick={() => toast({ title: 'Password Updated' })}>Change Password</Button>
-            </CardContent>
-          </Card>
+          <SecurityTab
+            currentUser={currentUser}
+            resetSent={resetSent}
+            resetRequesting={resetRequesting}
+            onRequest={handlePasswordResetRequest}
+          />
         </TabsContent>
 
         <TabsContent value="defaults">

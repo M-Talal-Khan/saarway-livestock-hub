@@ -16,17 +16,22 @@ export default function ERPLayout({ children }: { children: React.ReactNode }) {
   const onStationsPage = pathname === "/erp/stations-overview";
 
   useEffect(() => {
+    // Not a farm user → redirect to farm login
+    if (!currentUser) {
+      router.replace("/farm-login");
+      return;
+    }
+    // Admin must pick a station before accessing any other ERP page
     if (isAdmin && !stationSelected && !onStationsPage) {
       router.replace("/erp/stations-overview");
     }
-  }, [isAdmin, stationSelected, onStationsPage, router]);
+  }, [currentUser, isAdmin, stationSelected, onStationsPage, router]);
 
-  // While redirecting, don't render content
-  if (isAdmin && !stationSelected && !onStationsPage) {
-    return null;
-  }
+  // Blank while redirecting
+  if (!currentUser) return null;
+  if (isAdmin && !stationSelected && !onStationsPage) return null;
 
-  const showSidebar = stationSelected;
+  const showSidebar = !isAdmin || stationSelected;
 
   return (
     <SidebarProvider>

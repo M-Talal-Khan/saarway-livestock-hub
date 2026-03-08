@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { Loader2 } from "lucide-react";
 import { useSuperAdminAuth } from "@/context/SuperAdminAuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,21 +12,25 @@ import { useToast } from "@/hooks/use-toast";
 const SuperAdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const { login } = useSuperAdminAuth();
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (login(email, password)) {
+    setLoading(true);
+    const { success, error } = await login(email, password);
+    setLoading(false);
+    if (success) {
       router.push("/super-admin/dashboard");
     } else {
-      toast({ title: "Login failed", description: "Invalid credentials", variant: "destructive" });
+      toast({ title: "Login failed", description: error ?? "Invalid credentials", variant: "destructive" });
     }
   };
 
   const handleForgotPassword = () => {
-    toast({ title: "Password reset email sent", description: "Check your inbox for further instructions." });
+    toast({ title: "Password reset", description: "Contact the platform owner to reset your Super Admin password." });
   };
 
   return (
@@ -66,9 +71,16 @@ const SuperAdminLogin = () => {
 
           <Button
             type="submit"
-            className="w-full bg-sw-admin-green text-sw-admin-bg font-semibold hover:bg-sw-admin-green/90 hover:scale-[1.02] transition-all"
+            disabled={loading}
+            className="w-full bg-sw-admin-green text-sw-admin-bg font-semibold hover:bg-sw-admin-green/90 hover:scale-[1.02] transition-all disabled:opacity-70"
           >
-            Login
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" /> Logging in...
+              </span>
+            ) : (
+              "Login"
+            )}
           </Button>
 
           <button

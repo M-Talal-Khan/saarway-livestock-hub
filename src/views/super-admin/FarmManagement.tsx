@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,63 +8,208 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { pendingFarms, activeFarms as initialActive, suspendedFarms as initialSuspended } from "@/data/super-admin";
+import { Loader2, Copy, Check } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
-const statusBadge = (status: string) => {
-  const map: Record<string, string> = {
-    Paid: "bg-[#D1FAE5] text-[#065F46]",
-    Overdue: "bg-[#FEE2E2] text-[#991B1B]",
-    Meat: "bg-[#FED7AA] text-[#C2410C]",
-    Dairy: "bg-[#DBEAFE] text-[#1E40AF]",
-    Both: "bg-[#EDE9FE] text-[#6D28D9]",
-  };
-  return (
-    <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${map[status] || "bg-muted text-muted-foreground"}`}>
-      {status}
-    </span>
-  );
-};
+interface FarmRequest {
+  id: string;
+  farm_name: string;
+  owner_name: string;
+  phone: string;
+  email: string;
+  city: string;
+  approx_stations: number;
+  description: string | null;
+  status: string;
+  duplicateStatus?: "active" | "suspended" | null;
+  created_at?: string;
+}
+
+interface Farm {
+  id: string;
+  farm_number: number;
+  farm_name: string;
+  owner_name: string;
+  city: string;
+  is_active: boolean;
+  suspension_reason: string | null;
+  suspended_at: string | null;
+  onboarded_at: string | null;
+  passwordResetRequested?: boolean;
+}
+
+interface ApproveCredentials {
+  farmNumber: number;
+  username: string;
+  password: string;
+}
+
+async function getToken(): Promise<string> {
+  const supabase = createClient();
+  const { data } = await supabase.auth.getSession();
+  return data.session?.access_token ?? "";
+}
 
 const FarmManagement = () => {
   const { toast } = useToast();
-  const [pending, setPending] = useState(pendingFarms);
-  const [active, setActive] = useState(initialActive);
-  const [suspended, setSuspended] = useState(initialSuspended);
-  const [rejectModal, setRejectModal] = useState<string | null>(null);
-  const [suspendModal, setSuspendModal] = useState<string | null>(null);
-  const [reason, setReason] = useState("");
 
-  const handleApprove = (farmName: string) => {
-    setPending((p) => p.filter((f) => f.farmName !== farmName));
-    toast({ title: "Farm Approved", description: `${farmName} has been approved and credentials sent.` });
+  const [requests, setRequests] = useState<FarmRequest[]>([]);
+  const [farms, setFarms] = useState<Farm[]>([]);
+  const [loadingRequests, setLoadingRequests] = useState(true);
+  const [loadingFarms, setLoadingFarms] = useState(true);
+
+  const [rejectModal, setRejectModal] = useState<FarmRequest | null>(null);
+  const [suspendModal, setSuspendModal] = useState<Farm | null>(null);
+  const [reason, setReason] = useState("");
+  const [acting, setActing] = useState(false);
+
+  const [credentials, setCredentials] = useState<ApproveCredentials | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const fetchRequests = useCallback(async () => {
+    setLoadingRequests(true);
+    const token = await getToken();
+    const res = await fetch("/api/super-admin/farm-requests", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    if (res.ok) setRequests(data.requests);
+    setLoadingRequests(false);
+  }, []);
+
+  const fetchFarms = useCallback(async () => {
+    setLoadingFarms(true);
+    const token = await getToken();
+    const res = await fetch("/api/super-admin/farms", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    if (res.ok) setFarms(data.farms);
+    setLoadingFarms(false);
+  }, []);
+
+  useEffect(() => {
+    fetchRequests();
+    fetchFarms();
+  }, [fetchRequests, fetchFarms]);
+
+  const handleApprove = async (req: FarmRequest) => {
+    setActing(true);
+    const token = await getToken();
+    const res = await fetch(`/api/super-admin/farm-requests/${req.id}`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "approve" }),
+    });
+    const data = await res.json();
+    setActing(false);
+    if (!res.ok) {
+      toast({ title: "Approval failed", description: data.error, variant: "destructive" });
+      return;
+    }
+    setRequests((prev) => prev.filter((r) => r.id !== req.id));
+    fetchFarms();
+    setCredentials({ farmNumber: data.farmNumber, username: data.username, password: data.password });
   };
 
-  const handleReject = () => {
-    setPending((p) => p.filter((f) => f.farmName !== rejectModal));
-    toast({ title: "Farm Rejected", description: `${rejectModal} registration rejected.` });
+  const handleReject = async () => {
+    if (!rejectModal) return;
+    setActing(true);
+    const token = await getToken();
+    const res = await fetch(`/api/super-admin/farm-requests/${rejectModal.id}`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "reject", reason }),
+    });
+    setActing(false);
+    if (!res.ok) {
+      const data = await res.json();
+      toast({ title: "Failed to reject", description: data.error, variant: "destructive" });
+      return;
+    }
+    setRequests((prev) => prev.filter((r) => r.id !== rejectModal.id));
+    toast({ title: "Request rejected" });
     setRejectModal(null);
     setReason("");
   };
 
-  const handleSuspend = () => {
-    const farm = active.find((f) => f.id === suspendModal);
-    if (farm) {
-      setActive((a) => a.filter((f) => f.id !== suspendModal));
-      setSuspended((s) => [...s, { id: farm.id, name: farm.name, owner: farm.owner, reason, suspendedDate: new Date().toISOString().split("T")[0] }]);
-      toast({ title: "Farm Suspended", description: `${farm.name} has been suspended.` });
+  const handleSuspend = async () => {
+    if (!suspendModal || !reason) return;
+    setActing(true);
+    const token = await getToken();
+    const res = await fetch(`/api/super-admin/farms/${suspendModal.id}`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "suspend", reason }),
+    });
+    setActing(false);
+    if (!res.ok) {
+      const data = await res.json();
+      toast({ title: "Failed to suspend", description: data.error, variant: "destructive" });
+      return;
     }
+    setFarms((prev) =>
+      prev.map((f) =>
+        f.id === suspendModal.id
+          ? { ...f, is_active: false, suspension_reason: reason, suspended_at: new Date().toISOString() }
+          : f
+      )
+    );
+    toast({ title: `${suspendModal.farm_name} suspended` });
     setSuspendModal(null);
     setReason("");
   };
 
-  const handleReactivate = (id: string) => {
-    const farm = suspended.find((f) => f.id === id);
-    if (farm) {
-      setSuspended((s) => s.filter((f) => f.id !== id));
-      setActive((a) => [...a, { id: farm.id, name: farm.name, owner: farm.owner, city: "—", animals: 0, listings: 0, feeStatus: "Paid" as const, joined: farm.suspendedDate }]);
-      toast({ title: "Farm Reactivated", description: `${farm.name} has been reactivated.` });
+  const handleResetPassword = async (farm: Farm) => {
+    const token = await getToken();
+    const res = await fetch(`/api/super-admin/farms/${farm.id}`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "reset-password" }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      toast({ title: "Failed to reset password", description: data.error, variant: "destructive" });
+      return;
     }
+    setCredentials({ farmNumber: data.farmNumber, username: data.username, password: data.password });
   };
+
+  const handleReactivate = async (farm: Farm) => {
+    const token = await getToken();
+    const res = await fetch(`/api/super-admin/farms/${farm.id}`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "reactivate" }),
+    });
+    if (!res.ok) {
+      toast({ title: "Failed to reactivate", variant: "destructive" });
+      return;
+    }
+    setFarms((prev) =>
+      prev.map((f) =>
+        f.id === farm.id ? { ...f, is_active: true, suspension_reason: null, suspended_at: null } : f
+      )
+    );
+    toast({ title: `${farm.farm_name} reactivated` });
+    // Refresh pending requests — any with this farm's email are now auto-rejected by the API
+    fetchRequests();
+  };
+
+  const copyCredentials = () => {
+    if (!credentials) return;
+    const text = `Farm ID: ${credentials.farmNumber}\nUsername: ${credentials.username}\nPassword: ${credentials.password}`;
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const pending = requests.filter((r) => r.status === "pending");
+  const active = farms.filter((f) => f.is_active);
+  const suspended = farms.filter((f) => !f.is_active);
+
+  const formatDate = (iso: string | null) =>
+    iso ? new Date(iso).toLocaleDateString("en-PK", { day: "2-digit", month: "short", year: "numeric" }) : "—";
 
   return (
     <div className="space-y-4">
@@ -72,150 +217,277 @@ const FarmManagement = () => {
 
       <Tabs defaultValue="pending">
         <TabsList>
-          <TabsTrigger value="pending">Pending Requests ({pending.length})</TabsTrigger>
-          <TabsTrigger value="active">Active Farms ({active.length})</TabsTrigger>
+          <TabsTrigger value="pending">Pending ({pending.length})</TabsTrigger>
+          <TabsTrigger value="active">Active ({active.length})</TabsTrigger>
           <TabsTrigger value="suspended">Suspended ({suspended.length})</TabsTrigger>
         </TabsList>
 
+        {/* ── Pending ── */}
         <TabsContent value="pending">
           <Card>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Farm Name</TableHead>
-                    <TableHead>Owner</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>City</TableHead>
-                    <TableHead>Stations</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Submitted</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pending.map((f) => (
-                    <TableRow key={f.farmName}>
-                      <TableCell className="font-medium">{f.farmName}</TableCell>
-                      <TableCell>{f.owner}</TableCell>
-                      <TableCell>{f.phone}</TableCell>
-                      <TableCell>{f.city}</TableCell>
-                      <TableCell>{f.stations}</TableCell>
-                      <TableCell>{statusBadge(f.type)}</TableCell>
-                      <TableCell>{f.submitted}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button size="sm" className="bg-sw-admin-green text-sw-admin-bg hover:bg-sw-admin-green/90 hover:scale-[1.02] text-xs" onClick={() => handleApprove(f.farmName)}>Approve</Button>
-                          <Button size="sm" variant="outline" className="border-destructive text-destructive hover:bg-destructive/5 text-xs" onClick={() => setRejectModal(f.farmName)}>Reject</Button>
-                        </div>
-                      </TableCell>
+              {loadingRequests ? (
+                <div className="flex items-center justify-center py-12 text-muted-foreground">
+                  <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading...
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Farm Name</TableHead>
+                      <TableHead>Owner</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>City</TableHead>
+                      <TableHead>Stations</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                  {pending.length === 0 && (
-                    <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">No pending requests</TableCell></TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {pending.map((r) => (
+                      <TableRow key={r.id}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            {r.farm_name}
+                            {r.duplicateStatus === "active" && (
+                              <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 border border-red-200">
+                                DUPLICATE
+                              </span>
+                            )}
+                            {r.duplicateStatus === "suspended" && (
+                              <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-700 border border-orange-200">
+                                SUSPENDED
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>{r.owner_name}</TableCell>
+                        <TableCell>{r.phone}</TableCell>
+                        <TableCell>{r.city}</TableCell>
+                        <TableCell>{r.approx_stations}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              className="bg-sw-admin-green text-sw-admin-bg hover:bg-sw-admin-green/90 text-xs"
+                              onClick={() => handleApprove(r)}
+                              disabled={acting}
+                            >
+                              {acting ? <Loader2 className="w-3 h-3 animate-spin" /> : "Approve"}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-destructive text-destructive hover:bg-destructive/5 text-xs"
+                              onClick={() => { setRejectModal(r); setReason(""); }}
+                            >
+                              Reject
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {pending.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                          No pending requests
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* ── Active ── */}
         <TabsContent value="active">
           <Card>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Farm ID</TableHead>
-                    <TableHead>Farm Name</TableHead>
-                    <TableHead>Owner</TableHead>
-                    <TableHead>City</TableHead>
-                    <TableHead>Animals</TableHead>
-                    <TableHead>Listings</TableHead>
-                    <TableHead>Fee Status</TableHead>
-                    <TableHead>Joined</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {active.map((f) => (
-                    <TableRow key={f.id}>
-                      <TableCell className="font-mono text-sm">{f.id}</TableCell>
-                      <TableCell className="font-medium">{f.name}</TableCell>
-                      <TableCell>{f.owner}</TableCell>
-                      <TableCell>{f.city}</TableCell>
-                      <TableCell>{f.animals}</TableCell>
-                      <TableCell>{f.listings}</TableCell>
-                      <TableCell>{statusBadge(f.feeStatus)}</TableCell>
-                      <TableCell>{f.joined}</TableCell>
-                      <TableCell>
-                        <Button size="sm" variant="outline" className="border-destructive text-destructive hover:bg-destructive/5 text-xs" onClick={() => setSuspendModal(f.id)}>Suspend</Button>
-                      </TableCell>
+              {loadingFarms ? (
+                <div className="flex items-center justify-center py-12 text-muted-foreground">
+                  <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading...
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Farm ID</TableHead>
+                      <TableHead>Farm Name</TableHead>
+                      <TableHead>Owner</TableHead>
+                      <TableHead>City</TableHead>
+                      <TableHead>Onboarded</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {active.map((f) => (
+                      <TableRow key={f.id}>
+                        <TableCell className="font-mono text-sm">{f.farm_number}</TableCell>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            {f.farm_name}
+                            {f.passwordResetRequested && (
+                              <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold bg-yellow-100 text-yellow-800 border border-yellow-200">
+                                🔑 RESET REQUESTED
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>{f.owner_name}</TableCell>
+                        <TableCell>{f.city}</TableCell>
+                        <TableCell>{formatDate(f.onboarded_at)}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant={f.passwordResetRequested ? "default" : "outline"}
+                              className="text-xs"
+                              onClick={() => handleResetPassword(f)}
+                            >
+                              Reset Password
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-destructive text-destructive hover:bg-destructive/5 text-xs"
+                              onClick={() => { setSuspendModal(f); setReason(""); }}
+                            >
+                              Suspend
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {active.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                          No active farms
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* ── Suspended ── */}
         <TabsContent value="suspended">
           <Card>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Farm ID</TableHead>
-                    <TableHead>Farm Name</TableHead>
-                    <TableHead>Owner</TableHead>
-                    <TableHead>Suspension Reason</TableHead>
-                    <TableHead>Suspended Date</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {suspended.map((f) => (
-                    <TableRow key={f.id}>
-                      <TableCell className="font-mono text-sm">{f.id}</TableCell>
-                      <TableCell className="font-medium">{f.name}</TableCell>
-                      <TableCell>{f.owner}</TableCell>
-                      <TableCell className="max-w-xs truncate">{f.reason}</TableCell>
-                      <TableCell>{f.suspendedDate}</TableCell>
-                      <TableCell>
-                        <Button size="sm" className="bg-sw-admin-green text-sw-admin-bg hover:bg-sw-admin-green/90 text-xs" onClick={() => handleReactivate(f.id)}>Reactivate</Button>
-                      </TableCell>
+              {loadingFarms ? (
+                <div className="flex items-center justify-center py-12 text-muted-foreground">
+                  <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading...
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Farm ID</TableHead>
+                      <TableHead>Farm Name</TableHead>
+                      <TableHead>Owner</TableHead>
+                      <TableHead>Suspension Reason</TableHead>
+                      <TableHead>Suspended</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                  {suspended.length === 0 && (
-                    <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No suspended farms</TableCell></TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {suspended.map((f) => (
+                      <TableRow key={f.id}>
+                        <TableCell className="font-mono text-sm">{f.farm_number}</TableCell>
+                        <TableCell className="font-medium">{f.farm_name}</TableCell>
+                        <TableCell>{f.owner_name}</TableCell>
+                        <TableCell className="max-w-xs truncate">{f.suspension_reason ?? "—"}</TableCell>
+                        <TableCell>{formatDate(f.suspended_at)}</TableCell>
+                        <TableCell>
+                          <Button
+                            size="sm"
+                            className="bg-sw-admin-green text-sw-admin-bg hover:bg-sw-admin-green/90 text-xs"
+                            onClick={() => handleReactivate(f)}
+                          >
+                            Reactivate
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {suspended.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                          No suspended farms
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
-      {/* Reject Modal */}
-      <Dialog open={!!rejectModal} onOpenChange={() => { setRejectModal(null); setReason(""); }}>
+      {/* ── Credentials Dialog (shown after approval) ── */}
+      <Dialog open={!!credentials} onOpenChange={() => { setCredentials(null); setCopied(false); }}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Reject {rejectModal}?</DialogTitle></DialogHeader>
-          <Textarea placeholder="Rejection reason (optional)" value={reason} onChange={(e) => setReason(e.target.value)} />
+          <DialogHeader>
+            <DialogTitle>Farm Approved — Share Credentials</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Send these login details to the farm owner. The password cannot be recovered later.
+          </p>
+          <div className="bg-muted rounded-lg p-4 font-mono text-sm space-y-1">
+            <div><span className="text-muted-foreground">Farm ID:  </span><strong>{credentials?.farmNumber}</strong></div>
+            <div><span className="text-muted-foreground">Username: </span><strong>{credentials?.username}</strong></div>
+            <div><span className="text-muted-foreground">Password: </span><strong>{credentials?.password}</strong></div>
+          </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setRejectModal(null)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleReject}>Confirm Reject</Button>
+            <Button variant="outline" onClick={copyCredentials} className="gap-2">
+              {copied ? <><Check className="w-4 h-4" /> Copied</> : <><Copy className="w-4 h-4" /> Copy All</>}
+            </Button>
+            <Button onClick={() => { setCredentials(null); setCopied(false); }}>Done</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Suspend Modal */}
+      {/* ── Reject Dialog ── */}
+      <Dialog open={!!rejectModal} onOpenChange={() => { setRejectModal(null); setReason(""); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject {rejectModal?.farm_name}?</DialogTitle>
+          </DialogHeader>
+          <Textarea
+            placeholder="Rejection reason (optional)"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+          />
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setRejectModal(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleReject} disabled={acting}>
+              {acting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+              Confirm Reject
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Suspend Dialog ── */}
       <Dialog open={!!suspendModal} onOpenChange={() => { setSuspendModal(null); setReason(""); }}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Suspend Farm?</DialogTitle></DialogHeader>
-          <Textarea placeholder="Suspension reason (required)" value={reason} onChange={(e) => setReason(e.target.value)} />
+          <DialogHeader>
+            <DialogTitle>Suspend {suspendModal?.farm_name}?</DialogTitle>
+          </DialogHeader>
+          <Textarea
+            placeholder="Suspension reason (required)"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+          />
           <DialogFooter>
             <Button variant="ghost" onClick={() => setSuspendModal(null)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleSuspend} disabled={!reason}>Confirm Suspend</Button>
+            <Button variant="destructive" onClick={handleSuspend} disabled={acting || !reason}>
+              {acting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+              Confirm Suspend
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
