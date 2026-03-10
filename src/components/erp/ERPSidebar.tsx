@@ -49,7 +49,7 @@ const ERPSidebar = () => {
   const visibleModules = modules.filter(m => m.roles.includes(role) || m.comingSoon);
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-white/10 bg-[#0a1a0a] [&_[data-sidebar]]:bg-[#0a1a0a]">
+    <Sidebar collapsible="icon" className="border-r border-white/10 bg-[#0a1a0a] text-white [&_[data-sidebar]]:bg-[#0a1a0a]">
       <SidebarHeader className={`border-b border-white/10 ${collapsed ? 'p-3 flex items-center justify-center' : 'p-5'}`}>
         <div className="flex items-center gap-2.5">
           <Image src="/images/logo-icon-v2.png" alt="Saarway" width={32} height={32} className="shrink-0" />
@@ -77,7 +77,7 @@ const ERPSidebar = () => {
                         rounded-lg transition-all duration-300 py-2.5 group/btn relative overflow-hidden
                         ${collapsed ? 'justify-center px-0' : ''}
                         ${isActive
-                          ? 'bg-gradient-to-r from-primary/30 to-primary/10 text-white shadow-[0_0_20px_rgba(61,184,61,0.15)] border-l-[3px] border-l-primary'
+                          ? 'bg-gradient-to-r from-primary/30 to-primary/10 !text-white shadow-[0_0_20px_rgba(61,184,61,0.15)] border-l-[3px] border-l-primary'
                           : 'hover:bg-white/8 text-white/60 hover:text-white border-l-[3px] border-l-transparent'
                         }
                         ${item.disabled || !isAllowed ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}

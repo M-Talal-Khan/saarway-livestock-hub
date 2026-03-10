@@ -1,0 +1,571 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "app",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/api/erp/cattle/[id]",
+      "regex": "^/api/erp/cattle/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/erp/cattle/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/erp/cattle/[id]/weights",
+      "regex": "^/api/erp/cattle/([^/]+?)/weights(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/erp/cattle/(?<nxtPid>[^/]+?)/weights(?:/)?$"
+    },
+    {
+      "page": "/api/erp/feed/[feedId]",
+      "regex": "^/api/erp/feed/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPfeedId": "nxtPfeedId"
+      },
+      "namedRegex": "^/api/erp/feed/(?<nxtPfeedId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/erp/finance/rent/[id]",
+      "regex": "^/api/erp/finance/rent/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/erp/finance/rent/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/erp/health/vaccinations/[id]",
+      "regex": "^/api/erp/health/vaccinations/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/erp/health/vaccinations/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/erp/marketplace/[id]",
+      "regex": "^/api/erp/marketplace/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/erp/marketplace/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/erp/tasks/[id]",
+      "regex": "^/api/erp/tasks/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/erp/tasks/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/farm-auth/users/[id]",
+      "regex": "^/api/farm\\-auth/users/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/farm\\-auth/users/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/farms/[id]",
+      "regex": "^/api/farms/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/farms/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/marketplace/[id]",
+      "regex": "^/api/marketplace/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/marketplace/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/super-admin/farm-requests/[id]",
+      "regex": "^/api/super\\-admin/farm\\-requests/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/super\\-admin/farm\\-requests/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/super-admin/farms/[id]",
+      "regex": "^/api/super\\-admin/farms/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/super\\-admin/farms/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/farms/[id]",
+      "regex": "^/farms/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/farms/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/marketplace/[id]",
+      "regex": "^/marketplace/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/marketplace/(?<nxtPid>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/about",
+      "regex": "^/about(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/about(?:/)?$"
+    },
+    {
+      "page": "/api/contact",
+      "regex": "^/api/contact(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/contact(?:/)?$"
+    },
+    {
+      "page": "/api/erp/cattle",
+      "regex": "^/api/erp/cattle(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/erp/cattle(?:/)?$"
+    },
+    {
+      "page": "/api/erp/dashboard",
+      "regex": "^/api/erp/dashboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/erp/dashboard(?:/)?$"
+    },
+    {
+      "page": "/api/erp/feed",
+      "regex": "^/api/erp/feed(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/erp/feed(?:/)?$"
+    },
+    {
+      "page": "/api/erp/feed/logs",
+      "regex": "^/api/erp/feed/logs(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/erp/feed/logs(?:/)?$"
+    },
+    {
+      "page": "/api/erp/finance",
+      "regex": "^/api/erp/finance(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/erp/finance(?:/)?$"
+    },
+    {
+      "page": "/api/erp/finance/manual",
+      "regex": "^/api/erp/finance/manual(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/erp/finance/manual(?:/)?$"
+    },
+    {
+      "page": "/api/erp/finance/rent",
+      "regex": "^/api/erp/finance/rent(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/erp/finance/rent(?:/)?$"
+    },
+    {
+      "page": "/api/erp/finance/salaries",
+      "regex": "^/api/erp/finance/salaries(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/erp/finance/salaries(?:/)?$"
+    },
+    {
+      "page": "/api/erp/health/treatments",
+      "regex": "^/api/erp/health/treatments(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/erp/health/treatments(?:/)?$"
+    },
+    {
+      "page": "/api/erp/health/vaccinations",
+      "regex": "^/api/erp/health/vaccinations(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/erp/health/vaccinations(?:/)?$"
+    },
+    {
+      "page": "/api/erp/marketplace",
+      "regex": "^/api/erp/marketplace(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/erp/marketplace(?:/)?$"
+    },
+    {
+      "page": "/api/erp/marketplace/upload",
+      "regex": "^/api/erp/marketplace/upload(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/erp/marketplace/upload(?:/)?$"
+    },
+    {
+      "page": "/api/erp/notifications",
+      "regex": "^/api/erp/notifications(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/erp/notifications(?:/)?$"
+    },
+    {
+      "page": "/api/erp/purchases",
+      "regex": "^/api/erp/purchases(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/erp/purchases(?:/)?$"
+    },
+    {
+      "page": "/api/erp/sales",
+      "regex": "^/api/erp/sales(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/erp/sales(?:/)?$"
+    },
+    {
+      "page": "/api/erp/settings/farm",
+      "regex": "^/api/erp/settings/farm(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/erp/settings/farm(?:/)?$"
+    },
+    {
+      "page": "/api/erp/tasks",
+      "regex": "^/api/erp/tasks(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/erp/tasks(?:/)?$"
+    },
+    {
+      "page": "/api/farm-auth/forgot-password",
+      "regex": "^/api/farm\\-auth/forgot\\-password(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/farm\\-auth/forgot\\-password(?:/)?$"
+    },
+    {
+      "page": "/api/farm-auth/login",
+      "regex": "^/api/farm\\-auth/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/farm\\-auth/login(?:/)?$"
+    },
+    {
+      "page": "/api/farm-auth/password-reset-request",
+      "regex": "^/api/farm\\-auth/password\\-reset\\-request(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/farm\\-auth/password\\-reset\\-request(?:/)?$"
+    },
+    {
+      "page": "/api/farm-auth/stations",
+      "regex": "^/api/farm\\-auth/stations(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/farm\\-auth/stations(?:/)?$"
+    },
+    {
+      "page": "/api/farm-auth/users",
+      "regex": "^/api/farm\\-auth/users(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/farm\\-auth/users(?:/)?$"
+    },
+    {
+      "page": "/api/farms",
+      "regex": "^/api/farms(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/farms(?:/)?$"
+    },
+    {
+      "page": "/api/marketplace",
+      "regex": "^/api/marketplace(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/marketplace(?:/)?$"
+    },
+    {
+      "page": "/api/register-farm",
+      "regex": "^/api/register\\-farm(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/register\\-farm(?:/)?$"
+    },
+    {
+      "page": "/api/stats",
+      "regex": "^/api/stats(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/stats(?:/)?$"
+    },
+    {
+      "page": "/api/super-admin/analytics",
+      "regex": "^/api/super\\-admin/analytics(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/super\\-admin/analytics(?:/)?$"
+    },
+    {
+      "page": "/api/super-admin/dashboard",
+      "regex": "^/api/super\\-admin/dashboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/super\\-admin/dashboard(?:/)?$"
+    },
+    {
+      "page": "/api/super-admin/farm-requests",
+      "regex": "^/api/super\\-admin/farm\\-requests(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/super\\-admin/farm\\-requests(?:/)?$"
+    },
+    {
+      "page": "/api/super-admin/farms",
+      "regex": "^/api/super\\-admin/farms(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/super\\-admin/farms(?:/)?$"
+    },
+    {
+      "page": "/api/super-admin/marketplace",
+      "regex": "^/api/super\\-admin/marketplace(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/super\\-admin/marketplace(?:/)?$"
+    },
+    {
+      "page": "/api/super-admin/messages",
+      "regex": "^/api/super\\-admin/messages(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/super\\-admin/messages(?:/)?$"
+    },
+    {
+      "page": "/api/super-admin/notifications",
+      "regex": "^/api/super\\-admin/notifications(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/super\\-admin/notifications(?:/)?$"
+    },
+    {
+      "page": "/api/super-admin/revenue",
+      "regex": "^/api/super\\-admin/revenue(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/super\\-admin/revenue(?:/)?$"
+    },
+    {
+      "page": "/api/super-admin/settings",
+      "regex": "^/api/super\\-admin/settings(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/super\\-admin/settings(?:/)?$"
+    },
+    {
+      "page": "/contact",
+      "regex": "^/contact(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/contact(?:/)?$"
+    },
+    {
+      "page": "/erp/buying",
+      "regex": "^/erp/buying(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/erp/buying(?:/)?$"
+    },
+    {
+      "page": "/erp/cattle",
+      "regex": "^/erp/cattle(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/erp/cattle(?:/)?$"
+    },
+    {
+      "page": "/erp/dashboard",
+      "regex": "^/erp/dashboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/erp/dashboard(?:/)?$"
+    },
+    {
+      "page": "/erp/feed",
+      "regex": "^/erp/feed(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/erp/feed(?:/)?$"
+    },
+    {
+      "page": "/erp/finance",
+      "regex": "^/erp/finance(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/erp/finance(?:/)?$"
+    },
+    {
+      "page": "/erp/health",
+      "regex": "^/erp/health(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/erp/health(?:/)?$"
+    },
+    {
+      "page": "/erp/marketplace",
+      "regex": "^/erp/marketplace(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/erp/marketplace(?:/)?$"
+    },
+    {
+      "page": "/erp/notifications",
+      "regex": "^/erp/notifications(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/erp/notifications(?:/)?$"
+    },
+    {
+      "page": "/erp/reports",
+      "regex": "^/erp/reports(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/erp/reports(?:/)?$"
+    },
+    {
+      "page": "/erp/selling",
+      "regex": "^/erp/selling(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/erp/selling(?:/)?$"
+    },
+    {
+      "page": "/erp/settings",
+      "regex": "^/erp/settings(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/erp/settings(?:/)?$"
+    },
+    {
+      "page": "/erp/stations-overview",
+      "regex": "^/erp/stations\\-overview(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/erp/stations\\-overview(?:/)?$"
+    },
+    {
+      "page": "/erp/tasks",
+      "regex": "^/erp/tasks(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/erp/tasks(?:/)?$"
+    },
+    {
+      "page": "/erp/users",
+      "regex": "^/erp/users(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/erp/users(?:/)?$"
+    },
+    {
+      "page": "/farm-login",
+      "regex": "^/farm\\-login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/farm\\-login(?:/)?$"
+    },
+    {
+      "page": "/farms",
+      "regex": "^/farms(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/farms(?:/)?$"
+    },
+    {
+      "page": "/login",
+      "regex": "^/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/login(?:/)?$"
+    },
+    {
+      "page": "/marketplace",
+      "regex": "^/marketplace(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/marketplace(?:/)?$"
+    },
+    {
+      "page": "/register-farm",
+      "regex": "^/register\\-farm(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/register\\-farm(?:/)?$"
+    },
+    {
+      "page": "/super-admin",
+      "regex": "^/super\\-admin(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/super\\-admin(?:/)?$"
+    },
+    {
+      "page": "/super-admin/alerts",
+      "regex": "^/super\\-admin/alerts(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/super\\-admin/alerts(?:/)?$"
+    },
+    {
+      "page": "/super-admin/analytics",
+      "regex": "^/super\\-admin/analytics(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/super\\-admin/analytics(?:/)?$"
+    },
+    {
+      "page": "/super-admin/dashboard",
+      "regex": "^/super\\-admin/dashboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/super\\-admin/dashboard(?:/)?$"
+    },
+    {
+      "page": "/super-admin/farms",
+      "regex": "^/super\\-admin/farms(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/super\\-admin/farms(?:/)?$"
+    },
+    {
+      "page": "/super-admin/marketplace",
+      "regex": "^/super\\-admin/marketplace(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/super\\-admin/marketplace(?:/)?$"
+    },
+    {
+      "page": "/super-admin/messages",
+      "regex": "^/super\\-admin/messages(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/super\\-admin/messages(?:/)?$"
+    },
+    {
+      "page": "/super-admin/revenue",
+      "regex": "^/super\\-admin/revenue(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/super\\-admin/revenue(?:/)?$"
+    },
+    {
+      "page": "/super-admin/settings",
+      "regex": "^/super\\-admin/settings(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/super\\-admin/settings(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

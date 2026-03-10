@@ -1,0 +1,17 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/(erp)/layout,_N_T_/(erp)/erp/layout,_N_T_/(erp)/erp/feed/layout,_N_T_/(erp)/erp/feed/page,_N_T_/erp/feed"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/!KGVycCk/erp/feed/__PAGE__",
+    "/!KGVycCk/erp/feed",
+    "/!KGVycCk/erp",
+    "/!KGVycCk",
+    "/_index",
+    "/_head"
+  ]
+}

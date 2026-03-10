@@ -1,0 +1,3 @@
+{
+  "/api/erp/feed/[feedId]/route": "app/api/erp/feed/[feedId]/route.js"
+}

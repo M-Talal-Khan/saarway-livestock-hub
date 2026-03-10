@@ -1,0 +1,17 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/(erp)/layout,_N_T_/(erp)/erp/layout,_N_T_/(erp)/erp/stations-overview/layout,_N_T_/(erp)/erp/stations-overview/page,_N_T_/erp/stations-overview"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/!KGVycCk/erp/stations-overview/__PAGE__",
+    "/!KGVycCk/erp/stations-overview",
+    "/!KGVycCk/erp",
+    "/!KGVycCk",
+    "/_index",
+    "/_head"
+  ]
+}

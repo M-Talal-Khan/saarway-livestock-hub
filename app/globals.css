@@ -79,7 +79,12 @@
     font-family: 'Inter', sans-serif;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Inter', sans-serif;
   }
 }
@@ -110,6 +115,7 @@
   .sw-card-hover {
     @apply transition-all duration-300;
   }
+
   .sw-card-hover:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 32px -8px hsla(120, 50%, 48%, 0.2);
@@ -139,35 +145,53 @@
   }
 
   /* ERP stat card left borders */
-  .erp-stat-border-animals { border-left: 3px solid hsl(120 50% 48%); }
-  .erp-stat-border-finance { border-left: 3px solid hsl(44 76% 60%); }
-  .erp-stat-border-health { border-left: 3px solid hsl(192 72% 60%); }
-  .erp-stat-border-alert { border-left: 3px solid hsl(0 76% 63%); }
-  .erp-stat-border-rent { border-left: 3px solid hsl(120 67% 37%); }
+  .erp-stat-border-animals {
+    border-left: 3px solid hsl(120 50% 48%);
+  }
+
+  .erp-stat-border-finance {
+    border-left: 3px solid hsl(44 76% 60%);
+  }
+
+  .erp-stat-border-health {
+    border-left: 3px solid hsl(192 72% 60%);
+  }
+
+  .erp-stat-border-alert {
+    border-left: 3px solid hsl(0 76% 63%);
+  }
+
+  .erp-stat-border-rent {
+    border-left: 3px solid hsl(120 67% 37%);
+  }
 
   /* ── ERP Glassmorphism ── */
   .erp-glass-card {
-    background: hsla(0, 0%, 100%, 0.72);
+    background: hsla(0, 0%, 100%, 0.76);
     backdrop-filter: blur(20px) saturate(1.6);
     -webkit-backdrop-filter: blur(20px) saturate(1.6);
-    border: 1px solid hsla(120, 46%, 62%, 0.15);
-    box-shadow: 0 4px 24px -4px hsla(120, 50%, 48%, 0.06), 0 1px 2px hsla(0,0%,0%,0.04);
+    border: 1px solid hsla(120, 46%, 62%, 0.2);
+    box-shadow:
+      0 4px 20px -4px hsla(120, 50%, 48%, 0.1),
+      0 1px 2px hsla(0, 0%, 0%, 0.04);
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
+
   .erp-glass-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 16px 40px -8px hsla(120, 50%, 48%, 0.18), 0 4px 12px hsla(0,0%,0%,0.06);
+    box-shadow: 0 16px 40px -8px hsla(120, 50%, 48%, 0.2), 0 4px 12px hsla(0, 0%, 0%, 0.06);
     border-color: hsla(120, 46%, 62%, 0.35);
   }
 
   .erp-glass-card-subtle {
-    background: hsla(0, 0%, 100%, 0.65);
+    background: hsla(0, 0%, 100%, 0.68);
     backdrop-filter: blur(16px) saturate(1.4);
     -webkit-backdrop-filter: blur(16px) saturate(1.4);
-    border: 1px solid hsla(120, 46%, 62%, 0.12);
-    box-shadow: 0 2px 12px -2px hsla(0,0%,0%,0.04);
+    border: 1px solid hsla(120, 46%, 62%, 0.15);
+    box-shadow: 0 2px 12px -2px hsla(0, 0%, 0%, 0.05);
     transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
+
   .erp-glass-card-subtle:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 24px -4px hsla(120, 50%, 48%, 0.12);
@@ -175,13 +199,33 @@
   }
 
   /* ── ERP Rich Animations ── */
-  .erp-stagger-1 { animation: erpFadeInUp 0.5s ease-out 0.05s both; }
-  .erp-stagger-2 { animation: erpFadeInUp 0.5s ease-out 0.1s both; }
-  .erp-stagger-3 { animation: erpFadeInUp 0.5s ease-out 0.15s both; }
-  .erp-stagger-4 { animation: erpFadeInUp 0.5s ease-out 0.2s both; }
-  .erp-stagger-5 { animation: erpFadeInUp 0.5s ease-out 0.25s both; }
-  .erp-stagger-6 { animation: erpFadeInUp 0.5s ease-out 0.3s both; }
-  .erp-stagger-7 { animation: erpFadeInUp 0.5s ease-out 0.35s both; }
+  .erp-stagger-1 {
+    animation: erpFadeInUp 0.5s ease-out 0.05s both;
+  }
+
+  .erp-stagger-2 {
+    animation: erpFadeInUp 0.5s ease-out 0.1s both;
+  }
+
+  .erp-stagger-3 {
+    animation: erpFadeInUp 0.5s ease-out 0.15s both;
+  }
+
+  .erp-stagger-4 {
+    animation: erpFadeInUp 0.5s ease-out 0.2s both;
+  }
+
+  .erp-stagger-5 {
+    animation: erpFadeInUp 0.5s ease-out 0.25s both;
+  }
+
+  .erp-stagger-6 {
+    animation: erpFadeInUp 0.5s ease-out 0.3s both;
+  }
+
+  .erp-stagger-7 {
+    animation: erpFadeInUp 0.5s ease-out 0.35s both;
+  }
 
   .erp-scale-in {
     animation: erpScaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
@@ -201,6 +245,7 @@
   .erp-table-row {
     transition: all 0.2s ease;
   }
+
   .erp-table-row:hover {
     background: hsla(120, 50%, 48%, 0.04);
   }
@@ -212,36 +257,85 @@
 }
 
 @keyframes swFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes swFadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes swSlideIn {
-  from { opacity: 0; transform: translateX(-20px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes swCountUp {
-  from { opacity: 0; transform: scale(0.5); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes swBellBounce {
-  0%, 100% { transform: rotate(0deg); }
-  20% { transform: rotate(12deg); }
-  40% { transform: rotate(-8deg); }
-  60% { transform: rotate(5deg); }
-  80% { transform: rotate(-3deg); }
+
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  20% {
+    transform: rotate(12deg);
+  }
+
+  40% {
+    transform: rotate(-8deg);
+  }
+
+  60% {
+    transform: rotate(5deg);
+  }
+
+  80% {
+    transform: rotate(-3deg);
+  }
 }
 
 @keyframes swPulseSubtle {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
 }
 
 .animate-bell-bounce {
@@ -253,21 +347,47 @@
 }
 
 @keyframes erpFadeInUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes erpScaleIn {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes erpShimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes swFloat {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-20px) scale(1.05); }
+
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(-20px) scale(1.05);
+  }
 }

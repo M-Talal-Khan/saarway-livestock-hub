@@ -1,0 +1,1 @@
+cattle_purchase, cattle_sale, transport, medical, feed, rent, salary, marketplace_listing_fee, miscellaneous

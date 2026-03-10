@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -111,6 +112,11 @@ const FinanceRent = () => {
   const [farmUsers, setFarmUsers] = useState<FarmUser[]>([]);
   const [staffSearch, setStaffSearch] = useState('');
   const [staffPickerOpen, setStaffPickerOpen] = useState(false);
+
+  // Custom Expense modal
+  const [addExpense, setAddExpense] = useState(false);
+  const [expenseForm, setExpenseForm] = useState({ stationId: '', category: 'miscellaneous', amount: '', transactionDate: new Date().toISOString().split('T')[0], description: '' });
+  const [expenseSaving, setExpenseSaving] = useState(false);
 
   // Mark rent paid
   const [markingPaid, setMarkingPaid] = useState<string | null>(null);
@@ -232,6 +238,35 @@ const FinanceRent = () => {
     } finally { setSalarySaving(false); }
   };
 
+  // ── Custom Expense ───────────────────────────────────────────────────────────
+
+  const handleAddExpense = async () => {
+    if (!expenseForm.amount || !expenseForm.category || !expenseForm.transactionDate) {
+      toast({ title: 'Error', description: 'Fill all required fields', variant: 'destructive' }); return;
+    }
+    setExpenseSaving(true);
+    try {
+      const res = await fetch('/api/erp/finance/manual', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          stationId: expenseForm.stationId || currentStation?.id || stations[0]?.id || null,
+          category: expenseForm.category,
+          amount: Number(expenseForm.amount),
+          transactionDate: expenseForm.transactionDate,
+          description: expenseForm.description || null
+        }),
+      });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+      toast({ title: 'Expense logged', description: 'Manual expense posted successfully.' });
+      setAddExpense(false);
+      setExpenseForm({ stationId: '', category: 'Miscellaneous', amount: '', transactionDate: new Date().toISOString().split('T')[0], description: '' });
+      await fetchAll();
+    } catch (e: unknown) {
+      toast({ title: 'Error', description: e instanceof Error ? e.message : 'Failed', variant: 'destructive' });
+    } finally { setExpenseSaving(false); }
+  };
+
   // ── Render ─────────────────────────────────────────────────────────────────
 
   if (!canAccess) {
@@ -251,15 +286,18 @@ const FinanceRent = () => {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-foreground erp-slide-up">Finance & Rent</h1>
-        {isAdmin && stations.length > 1 && (
-          <Select value={stationFilter} onValueChange={setStationFilter}>
-            <SelectTrigger className="w-[160px] h-9"><SelectValue placeholder="Station" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="All">All Stations</SelectItem>
-              {stations.map(s => <SelectItem key={s.id} value={s.id}>{s.station_name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        )}
+        <div className="flex items-center gap-2">
+          {isAdmin && stations.length > 1 && (
+            <Select value={stationFilter} onValueChange={setStationFilter}>
+              <SelectTrigger className="w-[160px] h-9"><SelectValue placeholder="Station" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All Stations</SelectItem>
+                {stations.map(s => <SelectItem key={s.id} value={s.id}>{s.station_name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
+          <Button onClick={() => setAddExpense(true)} className="h-9 erp-slide-up animation-delay-1.5"><Plus className="mr-2 h-4 w-4" />Log Custom Expense</Button>
+        </div>
       </div>
 
       {/* Summary cards */}
@@ -581,10 +619,63 @@ const FinanceRent = () => {
             <p className="text-[10px] text-muted-foreground">Amount auto-posts to Finance as Salary expense.</p>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setAddSalary(false)}>Cancel</Button>
-            <Button onClick={handleAddSalary} disabled={salarySaving}>
-              {salarySaving && <Loader2 className="h-4 w-4 animate-spin mr-1" />}Record
-            </Button>
+            <Button variant="outline" onClick={() => setAddSalary(false)}>Cancel</Button>
+            <Button onClick={handleAddSalary} disabled={salarySaving}>{salarySaving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save Salary'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Custom Expense Modal */}
+      <Dialog open={addExpense} onOpenChange={setAddExpense}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Log Custom Expense</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <span className="text-right text-sm font-medium pt-2">Category</span>
+              <div className="col-span-3">
+                <Select value={expenseForm.category} onValueChange={v => setExpenseForm(prev => ({ ...prev, category: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="transport">Transport & Logistics</SelectItem>
+                    <SelectItem value="medical">Medical / Health</SelectItem>
+                    <SelectItem value="feed">Feed / Supplement</SelectItem>
+                    <SelectItem value="miscellaneous">Miscellaneous / Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {isAdmin && stations.length > 1 && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <span className="text-right text-sm font-medium">Station</span>
+                <Select value={expenseForm.stationId || currentStation?.id || stations[0]?.id} onValueChange={(val) => setExpenseForm({ ...expenseForm, stationId: val })}>
+                  <SelectTrigger className="col-span-3"><SelectValue placeholder="Select station" /></SelectTrigger>
+                  <SelectContent>
+                    {stations.map(s => <SelectItem key={s.id} value={s.id}>{s.station_name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <span className="text-right text-sm font-medium pt-2">Amount</span>
+              <div className="col-span-3 relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">PKR</span>
+                <Input type="number" min="0" className="pl-11" value={expenseForm.amount} onChange={e => setExpenseForm(prev => ({ ...prev, amount: e.target.value }))} placeholder="0" />
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <span className="text-right text-sm font-medium pt-2">Date</span>
+              <Input type="date" className="col-span-3" value={expenseForm.transactionDate} onChange={e => setExpenseForm(prev => ({ ...prev, transactionDate: e.target.value }))} />
+            </div>
+            <div className="grid grid-cols-4 items-start gap-4">
+              <span className="text-right text-sm font-medium pt-2">Description</span>
+              <Textarea className="col-span-3 min-h-[80px]" value={expenseForm.description} onChange={e => setExpenseForm(prev => ({ ...prev, description: e.target.value }))} placeholder="Optional details..." />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddExpense(false)}>Cancel</Button>
+            <Button onClick={handleAddExpense} disabled={expenseSaving}>{expenseSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save Expense'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

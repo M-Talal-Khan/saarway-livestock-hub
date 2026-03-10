@@ -1,0 +1,17 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/(erp)/layout,_N_T_/(erp)/erp/layout,_N_T_/(erp)/erp/dashboard/layout,_N_T_/(erp)/erp/dashboard/page,_N_T_/erp/dashboard"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/!KGVycCk/erp/dashboard/__PAGE__",
+    "/!KGVycCk/erp/dashboard",
+    "/!KGVycCk/erp",
+    "/!KGVycCk",
+    "/_index",
+    "/_head"
+  ]
+}
