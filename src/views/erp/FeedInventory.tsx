@@ -213,10 +213,8 @@ const FeedInventory = () => {
     } finally { setDeleteConfirming(false); }
   };
 
-  // ── Stock In ───────────────────────────────────────────────────────────────────
-
   const openStockModal = () => {
-    setStockForm({ feedItemId: '', stationId: isStationLocked ? (currentStation?.id ?? '') : '', quantity: '', cost: '', notes: '' });
+    setStockForm({ feedItemId: '', stationId: activeStationId ?? '', quantity: '', cost: '', notes: '' });
     setStockModal(true);
   };
 
@@ -238,10 +236,8 @@ const FeedInventory = () => {
     } finally { setStockSaving(false); }
   };
 
-  // ── Consumption ────────────────────────────────────────────────────────────────
-
   const openConsumeModal = () => {
-    setConsumeForm({ feedItemId: '', stationId: isStationLocked ? (currentStation?.id ?? '') : '', quantity: '', cost: '', notes: '' });
+    setConsumeForm({ feedItemId: '', stationId: activeStationId ?? '', quantity: '', cost: '', notes: '' });
     setConsumeModal(true);
   };
 
@@ -555,8 +551,8 @@ const FeedInventory = () => {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Station</Label>
-              {isStationLocked ? (
-                <Input value={currentStation?.name ?? ''} disabled />
+              {activeStationId ? (
+                <Input value={stations.find(s => s.id === activeStationId)?.station_name ?? currentStation?.name ?? ''} disabled />
               ) : (
                 <Select value={stockForm.stationId} onValueChange={v => setStockForm(p => ({ ...p, stationId: v, feedItemId: '' }))}>
                   <SelectTrigger><SelectValue placeholder="Select station" /></SelectTrigger>
@@ -613,8 +609,8 @@ const FeedInventory = () => {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Station</Label>
-              {isStationLocked ? (
-                <Input value={currentStation?.name ?? ''} disabled />
+              {activeStationId ? (
+                <Input value={stations.find(s => s.id === activeStationId)?.station_name ?? currentStation?.name ?? ''} disabled />
               ) : (
                 <Select value={consumeForm.stationId} onValueChange={v => setConsumeForm(p => ({ ...p, stationId: v, feedItemId: '' }))}>
                   <SelectTrigger><SelectValue placeholder="Select station" /></SelectTrigger>
