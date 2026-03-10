@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyFarmSession } from "@/lib/supabase/farm-session";
 
-export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ feedId: string }> }) {
+  const { feedId: id } = await params;
   const session = await verifyFarmSession(request);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!["admin", "manager"].includes(session.role)) {
@@ -12,10 +12,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
   const body = await request.json();
   const updates: Record<string, unknown> = {};
-  if (body.name !== undefined)               updates.name                = body.name;
-  if (body.unit !== undefined)               updates.unit                = body.unit;
-  if (body.lowStockThreshold !== undefined)  updates.low_stock_threshold = Number(body.lowStockThreshold);
-  if (body.isActive !== undefined)           updates.is_active           = body.isActive;
+  if (body.name !== undefined) updates.name = body.name;
+  if (body.unit !== undefined) updates.unit = body.unit;
+  if (body.lowStockThreshold !== undefined) updates.low_stock_threshold = Number(body.lowStockThreshold);
+  if (body.isActive !== undefined) updates.is_active = body.isActive;
 
   const admin = createAdminClient();
   const { data, error } = await admin
@@ -30,8 +30,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   return NextResponse.json({ feedItem: data });
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ feedId: string }> }) {
+  const { feedId: id } = await params;
   const session = await verifyFarmSession(request);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!["admin", "manager"].includes(session.role)) {
