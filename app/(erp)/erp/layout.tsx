@@ -32,13 +32,14 @@ export default function ERPLayout({ children }: { children: React.ReactNode }) {
   if (isAdmin && !stationSelected && !onStationsPage) return null;
 
   const showSidebar = !isAdmin || stationSelected;
+  const showChrome = showSidebar; // hide topbar+sidebar on station picker page
 
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-sw-green-50 via-white to-sw-green-50/60">
         {showSidebar && <ERPSidebar />}
         <div className="flex-1 flex flex-col min-w-0">
-          <ERPTopBar />
+          {showChrome && <ERPTopBar />}
           <main className="flex-1 p-4 md:p-6 overflow-auto">
             {children}
           </main>

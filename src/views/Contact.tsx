@@ -5,13 +5,29 @@ import { Mail, Phone, Send, CheckCircle, User } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const Contact = () => {
-  const [userType, setUserType] = useState<'farm' | 'general'>('general');
+  const [userType, setUserType] = useState<'Farm Owner' | 'General User'>('General User');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [message, setMessage] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({ title: 'Message sent!', description: "Thank you! Your message has been received. We'll get back to you shortly." });
-    setSubmitted(true);
+    setSending(true);
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_type: userType, name, email, phone: phone || null, message }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      toast({ title: 'Message sent!', description: "Thank you! Your message has been received. We'll get back to you shortly." });
+      setSubmitted(true);
+    } catch {
+      toast({ title: 'Error', description: 'Could not send your message. Please try again.', variant: 'destructive' });
+    } finally { setSending(false); }
   };
 
   const inputClass = "w-full px-4 py-3 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all";
@@ -57,7 +73,7 @@ const Contact = () => {
             <div>
               <label className="text-sm font-medium text-foreground mb-2 block">I Am A</label>
               <div className="flex gap-2">
-                {(['farm', 'general'] as const).map(type => (
+                {(['Farm Owner', 'General User'] as const).map(type => (
                   <button
                     key={type}
                     type="button"
@@ -65,7 +81,7 @@ const Contact = () => {
                     className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${userType === type ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
                       }`}
                   >
-                    {type === 'farm' ? 'Farm Owner' : 'General User'}
+                    {type}
                   </button>
                 ))}
               </div>
@@ -78,7 +94,7 @@ const Contact = () => {
                 </div>
                 Full Name *
               </label>
-              <input type="text" required className={inputClass} placeholder="Your full name" />
+              <input type="text" required className={inputClass} placeholder="Your full name" value={name} onChange={e => setName(e.target.value)} />
             </div>
             <div>
               <label className="text-sm font-bold text-sw-green-900 mb-2 flex items-center gap-3">
@@ -87,7 +103,7 @@ const Contact = () => {
                 </div>
                 Email *
               </label>
-              <input type="email" required className={inputClass} placeholder="your@email.com" />
+              <input type="email" required className={inputClass} placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} />
             </div>
             <div>
               <label className="text-sm font-bold text-sw-green-900 mb-2 flex items-center gap-3">
@@ -96,7 +112,7 @@ const Contact = () => {
                 </div>
                 Phone
               </label>
-              <input type="tel" className={inputClass} placeholder="+92 300 1234567" />
+              <input type="tel" className={inputClass} placeholder="+92 300 1234567" value={phone} onChange={e => setPhone(e.target.value)} />
             </div>
             <div>
               <label className="text-sm font-bold text-sw-green-900 mb-2 flex items-center gap-3">
@@ -105,13 +121,14 @@ const Contact = () => {
                 </div>
                 Message *
               </label>
-              <textarea required rows={4} className={inputClass} placeholder="How can we help?" />
+              <textarea required rows={4} className={inputClass} placeholder="How can we help?" value={message} onChange={e => setMessage(e.target.value)} />
             </div>
             <button
               type="submit"
-              className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-primary text-primary-foreground font-bold text-lg hover:bg-sw-green-700 transition-all sw-btn-glow sw-ripple shadow-lg"
+              disabled={sending}
+              className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-primary text-primary-foreground font-bold text-lg hover:bg-sw-green-700 transition-all sw-btn-glow sw-ripple shadow-lg disabled:opacity-60"
             >
-              <Send className="w-5 h-5 sw-icon-premium" /> Send Message
+              <Send className="w-5 h-5 sw-icon-premium" /> {sending ? 'Sending…' : 'Send Message'}
             </button>
           </form>
         )}

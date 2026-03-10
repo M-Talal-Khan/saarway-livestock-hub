@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth, AppRole } from '@/context/AuthContext';
 import {
   Home, Beef, Wheat, Syringe, ShoppingCart, Banknote, BarChart3,
-  Store, TrendingUp, Users, Settings, Lock
+  Store, TrendingUp, Users, Settings, Lock, Bell, ClipboardList
 } from 'lucide-react';
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
@@ -31,7 +31,9 @@ const modules: ModuleItem[] = [
   { title: 'Selling', icon: Banknote, url: '/erp/selling', roles: ['Admin', 'Manager'] },
   { title: 'Finance & Rent', icon: BarChart3, url: '/erp/finance', roles: ['Admin', 'Accounts Officer'] },
   { title: 'Marketplace', icon: Store, url: '/erp/marketplace', roles: ['Admin', 'Manager'] },
+  { title: 'Tasks', icon: ClipboardList, url: '/erp/tasks', roles: ['Admin', 'Manager', 'Veterinarian', 'Accounts Officer', 'Worker'] },
   { title: 'Reports', icon: TrendingUp, url: '/erp/reports', roles: ['Admin', 'Manager', 'Veterinarian', 'Accounts Officer'] },
+  { title: 'Notifications', icon: Bell, url: '/erp/notifications', roles: ['Admin', 'Manager', 'Veterinarian', 'Accounts Officer', 'Worker'] },
   { title: 'User Management', icon: Users, url: '/erp/users', roles: ['Admin'] },
   { title: 'Settings', icon: Settings, url: '/erp/settings', roles: ['Admin'] },
 ];
@@ -84,10 +86,9 @@ const ERPSidebar = () => {
                       {isActive && (
                         <span className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent animate-pulse-subtle pointer-events-none" />
                       )}
-                      <span className={`relative z-10 flex items-center justify-center shrink-0 transition-all duration-300 ${
-                        isActive
-                          ? 'text-primary drop-shadow-[0_0_8px_rgba(61,184,61,0.6)]'
-                          : 'text-white/50 group-hover/btn:text-white/90'
+                      <span className={`relative z-10 flex items-center justify-center shrink-0 transition-all duration-300 ${isActive
+                        ? 'text-primary drop-shadow-[0_0_8px_rgba(61,184,61,0.6)]'
+                        : 'text-white/50 group-hover/btn:text-white/90'
                         } ${collapsed ? 'w-5 h-5 mx-auto' : 'w-4 h-4'}`}>
                         {item.disabled ? <Lock className="h-full w-full" /> : <item.icon className="h-full w-full" />}
                       </span>

@@ -5,8 +5,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Factory, Beef, MapPin, Dna, ArrowRight, Lock, Milk, UtensilsCrossed, ChevronDown } from 'lucide-react';
 import { useScrollAnimation, useCountUp } from '@/hooks/useScrollAnimation';
-import { farms } from '@/data/farms';
 import Typewriter from 'typewriter-effect';
+
+interface FarmRow { id: string; farm_name: string; city: string; activeListings: number; }
+interface Stats { farmCount: number; animalCount: number; cityCount: number; breedCount: number; }
 
 const StatCard = ({ icon: Icon, label, value, delay = 0 }: { icon: any; label: string; value: number; delay?: number }) => {
   const { ref, isVisible } = useScrollAnimation();
@@ -41,10 +43,13 @@ const AnimatedSection = ({ children, className = '', delay = 0 }: { children: Re
 
 const Home = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [stats, setStats] = useState<Stats>({ farmCount: 0, animalCount: 0, cityCount: 0, breedCount: 0 });
+  const [featuredFarms, setFeaturedFarms] = useState<FarmRow[]>([]);
+
   const slides = [
-    '/images/home_slider/slide1.png',
-    '/images/home_slider/slide2.png',
-    '/images/home_slider/slide3.png'
+    '/images/home_slider/slide1.webp',
+    '/images/home_slider/slide2.webp',
+    '/images/home_slider/slide3.webp'
   ];
 
   useEffect(() => {
@@ -52,6 +57,15 @@ const Home = () => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 6000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/stats').then(r => r.json()).then(d => {
+      if (d.farmCount !== undefined) setStats(d);
+    }).catch(() => { });
+    fetch('/api/farms').then(r => r.json()).then(d => {
+      setFeaturedFarms((d.farms ?? []).slice(0, 4));
+    }).catch(() => { });
   }, []);
 
   return (
@@ -147,10 +161,10 @@ const Home = () => {
       <section className="py-20 bg-background relative border-t border-border">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 -mt-12 relative z-10">
-            <StatCard icon={Factory} label="Farms Onboarded" value={12} delay={0} />
-            <StatCard icon={Beef} label="Animals Listed" value={340} delay={100} />
-            <StatCard icon={MapPin} label="Cities Covered" value={8} delay={200} />
-            <StatCard icon={Dna} label="Breeds Available" value={15} delay={300} />
+            <StatCard icon={Factory} label="Farms Onboarded" value={stats.farmCount} delay={0} />
+            <StatCard icon={Beef} label="Animals Listed" value={stats.animalCount} delay={100} />
+            <StatCard icon={MapPin} label="Cities Covered" value={stats.cityCount} delay={200} />
+            <StatCard icon={Dna} label="Breeds Available" value={stats.breedCount} delay={300} />
           </div>
         </div>
       </section>
@@ -222,21 +236,22 @@ const Home = () => {
             <div className="w-20 h-1.5 bg-sw-green-500 rounded-full mx-auto mb-16" />
           </AnimatedSection>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {farms.slice(0, 4).map((farm, i) => (
+            {featuredFarms.length === 0 ? (
+              [0, 1, 2, 3].map(i => (
+                <div key={i} className="sw-glass-hover-gradient rounded-3xl h-48 animate-pulse bg-sw-green-50" />
+              ))
+            ) : featuredFarms.map((farm, i) => (
               <AnimatedSection key={farm.id} delay={i * 100}>
-                {/* Applied sw-glass-hover-gradient to make cards pop */}
                 <Link href={`/farms/${farm.id}`} className="group block sw-glass-hover-gradient rounded-3xl overflow-hidden h-full">
                   <div className="h-2 bg-gradient-to-r from-sw-green-400 to-sw-green-600 w-0 group-hover:w-full transition-all duration-500" />
                   <div className="p-8">
-                    <h3 className="font-bold text-sw-green-950 text-xl mb-2">{farm.name}</h3>
+                    <h3 className="font-bold text-sw-green-950 text-xl mb-2">{farm.farm_name}</h3>
                     <p className="text-sm text-sw-green-700 font-semibold flex items-center gap-1.5 mb-4">
                       <MapPin className="w-4 h-4" /> {farm.city}
                     </p>
-                    {/* Fixed text visibility */}
-                    <p className="text-sm text-sw-green-950/80 mb-6 line-clamp-2 leading-relaxed font-medium">{farm.description}</p>
-                    <div className="flex items-center justify-between pt-4 border-t border-black/5">
+                    <div className="flex items-center justify-between pt-4 border-t border-black/5 mt-6">
                       <span className="inline-flex text-xs font-bold bg-white/80 text-sw-green-700 px-3 py-1.5 rounded-lg border border-sw-green-200">
-                        {farm.listings} active listings
+                        {farm.activeListings} active listing{farm.activeListings !== 1 ? 's' : ''}
                       </span>
                       <ArrowRight className="w-5 h-5 text-sw-green-400 group-hover:text-sw-green-700 group-hover:translate-x-1 transition-all" />
                     </div>

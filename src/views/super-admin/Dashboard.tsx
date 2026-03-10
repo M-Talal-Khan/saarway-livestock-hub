@@ -1,34 +1,17 @@
 "use client";
 
-import { Building2, Store, DollarSign, AlertTriangle, Bell, MessageSquare, CheckCircle } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Building2, Store, DollarSign, AlertTriangle, Bell, MessageSquare, CheckCircle, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
-const statCards = [
-  { label: "Total Farms Registered", value: "12", icon: Building2, accent: "border-l-[3px] border-l-sw-admin-green", iconBg: "bg-sw-admin-green/10", iconColor: "text-sw-admin-green" },
-  { label: "Total Active Listings", value: "48", icon: Store, accent: "border-l-[3px] border-l-sw-sky-400", iconBg: "bg-sw-sky-400/10", iconColor: "text-sw-sky-400" },
-  { label: "Total Platform Revenue", value: "PKR 284,000", icon: DollarSign, accent: "border-l-[3px] border-l-sw-gold-400", iconBg: "bg-sw-gold-400/10", iconColor: "text-sw-gold-400" },
-  { label: "Pending Farm Requests", value: "3", icon: AlertTriangle, accent: "border-l-[3px] border-l-sw-admin-err", iconBg: "bg-sw-admin-err/10", iconColor: "text-sw-admin-err", action: true },
-];
-
-const recentAlerts = [
-  { severity: "critical", message: "Green Valley Farms — PKR 4,550 overdue", time: "2 hours ago" },
-  { severity: "info", message: "New farm registration from Rawalpindi", time: "5 hours ago" },
-  { severity: "warning", message: "Listing #109 suspended — Baloch Livestock", time: "1 day ago" },
-];
-
-const recentMessages = [
-  { sender: "Asad Khan", type: "Farm Owner", preview: "I want to register my farm in Peshawar...", date: "Mar 4" },
-  { sender: "Fatima Noor", type: "General User", preview: "How do I contact a seller after...", date: "Mar 3" },
-  { sender: "Usman Ali", type: "Farm Owner", preview: "We have 5 stations and want to...", date: "Mar 1" },
-];
-
-const recentApprovals = [
-  { farmName: "Northern Pastures", farmId: "F007", date: "Feb 28" },
-  { farmName: "Sindh Agri Farms", farmId: "F006", date: "Feb 25" },
-  { farmName: "Baloch Livestock", farmId: "F005", date: "Feb 20" },
-];
+async function getToken(): Promise<string> {
+  const supabase = createClient();
+  const { data } = await supabase.auth.getSession();
+  return data.session?.access_token ?? "";
+}
 
 const severityDot: Record<string, string> = {
   critical: "bg-sw-admin-err",
@@ -37,13 +20,46 @@ const severityDot: Record<string, string> = {
   success: "bg-sw-admin-green",
 };
 
+interface DashboardData {
+  stats: { totalFarms: number; pendingRequests: number; activeListings: number; estimatedRevenue?: number };
+  recentAlerts: { severity: string; message: string; time: string; link: string }[];
+  recentMessages: { id: string; sender: string; type: string; preview: string; date: string }[];
+  recentApprovals: { farmName: string; farmId: string; date: string }[];
+}
+
 const SuperAdminDashboard = () => {
   const router = useRouter();
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchDashboard = useCallback(async () => {
+    setLoading(true);
+    const token = await getToken();
+    const res = await fetch("/api/super-admin/dashboard", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) {
+      const json = await res.json();
+      setData(json);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchDashboard(); }, [fetchDashboard]);
+
+  if (loading || !data) return <div className="flex justify-center py-24"><Loader2 className="h-8 w-8 animate-spin text-sw-admin-green" /></div>;
+
+  const statCards = [
+    { label: "Total Farms", value: String(data.stats.totalFarms), icon: Building2, accent: "border-l-[3px] border-l-sw-admin-green", iconBg: "bg-sw-admin-green/10", iconColor: "text-sw-admin-green" },
+    { label: "Active Listings", value: String(data.stats.activeListings), icon: Store, accent: "border-l-[3px] border-l-sw-sky-400", iconBg: "bg-sw-sky-400/10", iconColor: "text-sw-sky-400" },
+    { label: "Pending Requests", value: String(data.stats.pendingRequests), icon: AlertTriangle, accent: "border-l-[3px] border-l-sw-admin-err", iconBg: "bg-sw-admin-err/10", iconColor: "text-sw-admin-err", action: data.stats.pendingRequests > 0 },
+    { label: "Current Mtd Revenue", value: `PKR ${data.stats.estimatedRevenue?.toLocaleString() ?? 0}`, icon: DollarSign, accent: "border-l-[3px] border-l-amber-500", iconBg: "bg-amber-500/10", iconColor: "text-amber-500" },
+  ];
 
   return (
     <div className="space-y-6">
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((card) => (
           <Card key={card.label} className={`${card.accent} hover:-translate-y-1`}>
             <CardContent className="p-5">
@@ -80,8 +96,10 @@ const SuperAdminDashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {recentAlerts.map((a, i) => (
-              <div key={i} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => router.push("/super-admin/alerts")}>
+            {data.recentAlerts.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No alerts</p>
+            ) : data.recentAlerts.map((a, i) => (
+              <div key={i} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => router.push(a.link)}>
                 <span className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${severityDot[a.severity]}`} />
                 <div className="min-w-0">
                   <p className="text-sm text-foreground leading-snug">{a.message}</p>
@@ -100,7 +118,9 @@ const SuperAdminDashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {recentMessages.map((m, i) => (
+            {data.recentMessages.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No messages</p>
+            ) : data.recentMessages.map((m, i) => (
               <div key={i} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => router.push("/super-admin/messages")}>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
@@ -123,7 +143,9 @@ const SuperAdminDashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {recentApprovals.map((a, i) => (
+            {data.recentApprovals.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No approvals yet</p>
+            ) : data.recentApprovals.map((a, i) => (
               <div key={i} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
                 <div>
                   <p className="text-sm font-medium text-foreground">{a.farmName}</p>

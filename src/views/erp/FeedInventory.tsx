@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { Wheat, Plus, Package, ClipboardList, Edit, Trash2, AlertTriangle, Info } from 'lucide-react';
+import { Wheat, Plus, Package, ClipboardList, Edit, Trash2, AlertTriangle, Info, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,220 +13,268 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Progress } from '@/components/ui/progress';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
-import {
-  feedItems as initialFeedItems,
-  stationStocks as initialStationStocks,
-  stockHistory as initialStockHistory,
-  consumptionLog as initialConsumptionLog,
-  type FeedItem,
-  type StationStock,
-  type StockEntry,
-  type ConsumptionEntry,
-} from '@/data/erp/feed';
-import { erpStations } from '@/data/erp/erpStations';
 
-const stationNames = erpStations.map(s => s.name);
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+interface Station {
+  id: string;
+  station_name: string;
+  station_tag: string;
+}
+
+interface FeedItem {
+  id: string;
+  name: string;
+  unit: string;
+  current_stock: number;
+  low_stock_threshold: number;
+  is_active: boolean;
+  station_id: string;
+  stations: { station_name: string; station_tag: string } | null;
+}
+
+interface FeedLog {
+  id: string;
+  log_type: 'stock_in' | 'consumption';
+  quantity: number;
+  cost: number | null;
+  notes: string | null;
+  logged_at: string;
+  station_id: string;
+  feed_item_id: string;
+  feed_items: { name: string; unit: string } | null;
+  farm_users: { full_name: string } | null;
+  stations: { station_name: string; station_tag: string } | null;
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+const getStockLevel = (current: number, threshold: number): 'green' | 'amber' | 'red' => {
+  if (current <= threshold) return 'red';
+  if (current <= threshold * 2) return 'amber';
+  return 'green';
+};
+
+const progressColor = (level: 'green' | 'amber' | 'red') => {
+  if (level === 'red') return 'bg-destructive';
+  if (level === 'amber') return 'bg-amber-500';
+  return 'bg-primary';
+};
+
+// ── Main Component ────────────────────────────────────────────────────────────
 
 const FeedInventory = () => {
   const { currentUser, currentStation } = useAuth();
-  const role = currentUser?.role || 'Admin';
-  const isAdmin = role === 'Admin';
-  const isManager = role === 'Manager';
+  const token = currentUser?.sessionToken ?? '';
+  const role = currentUser?.role ?? '';
   const isWorker = role === 'Worker';
-  const isStationLocked = isManager || isWorker;
-  const assignedStation = currentStation?.name || stationNames[0];
+  const canManage = ['Admin', 'Manager'].includes(role);
+  const isStationLocked = ['Manager', 'Worker', 'Veterinarian'].includes(role);
 
-  const [feedItemsList, setFeedItemsList] = useState<FeedItem[]>(initialFeedItems);
-  const [stationStocksState, setStationStocksState] = useState<Record<string, StationStock[]>>(JSON.parse(JSON.stringify(initialStationStocks)));
-  const [stockHistoryState, setStockHistoryState] = useState<StockEntry[]>(initialStockHistory);
-  const [consumptionState, setConsumptionState] = useState<ConsumptionEntry[]>(initialConsumptionLog);
+  const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
+  const [feedLogs, setFeedLogs] = useState<FeedLog[]>([]);
+  const [stations, setStations] = useState<Station[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Feed Item modal
   const [feedModal, setFeedModal] = useState(false);
   const [editingFeed, setEditingFeed] = useState<FeedItem | null>(null);
-  const [feedForm, setFeedForm] = useState({ name: '', unit: 'kg' as 'kg' | 'bag', costPerUnit: '', threshold: '', status: true });
+  const [feedForm, setFeedForm] = useState({ stationId: '', name: '', unit: 'kg', lowStockThreshold: '100', initialStock: '0', isActive: true });
+  const [feedSaving, setFeedSaving] = useState(false);
 
   // Add Stock modal
   const [stockModal, setStockModal] = useState(false);
-  const [stockForm, setStockForm] = useState({ station: '', feedItem: '', quantity: '', date: new Date(), source: '', cost: '' });
+  const [stockForm, setStockForm] = useState({ feedItemId: '', stationId: '', quantity: '', cost: '', notes: '' });
+  const [stockSaving, setStockSaving] = useState(false);
 
   // Log Consumption modal
   const [consumeModal, setConsumeModal] = useState(false);
-  const [consumeForm, setConsumeForm] = useState({ station: '', feedItem: '', quantity: '', date: new Date(), loggedBy: '' });
+  const [consumeForm, setConsumeForm] = useState({ feedItemId: '', stationId: '', quantity: '', cost: '', notes: '' });
+  const [consumeSaving, setConsumeSaving] = useState(false);
 
   // Delete confirmation
-  const [deleteModal, setDeleteModal] = useState<{ type: 'feed' | 'consumption'; id: number } | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{ type: 'feed'; id: string } | null>(null);
+  const [deleteConfirming, setDeleteConfirming] = useState(false);
 
-  // Stock management filters — locked for non-admin; admin defaults to current station
-  const [selectedStation, setSelectedStation] = useState<string>(isStationLocked ? assignedStation : (isAdmin && currentStation?.name ? currentStation.name : 'all'));
+  // ── Data fetching ─────────────────────────────────────────────────────────────
 
-  // Derived: which stations to show data for
-  const effectiveStations = isStationLocked ? [assignedStation] : (selectedStation === 'all' ? stationNames : [selectedStation]);
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    try {
+      const headers = { Authorization: `Bearer ${token}` };
+      const [feedRes, logsRes, stationsRes] = await Promise.all([
+        fetch('/api/erp/feed', { headers }),
+        fetch('/api/erp/feed/logs', { headers }),
+        fetch('/api/farm-auth/stations', { headers }),
+      ]);
+      const [feedData, logsData, stationsData] = await Promise.all([feedRes.json(), logsRes.json(), stationsRes.json()]);
+      setFeedItems(feedData.feedItems ?? []);
+      setFeedLogs(logsData.logs ?? []);
+      setStations(stationsData.stations ?? []);
+    } catch {
+      toast.error('Failed to load feed data');
+    } finally { setLoading(false); }
+  }, [token]);
 
-  // Filter consumption & stock history by station for locked roles
-  const filteredConsumption = isStationLocked ? consumptionState.filter(c => c.station === assignedStation) : consumptionState;
-  const filteredStockHistory = isStationLocked ? stockHistoryState.filter(e => e.station === assignedStation) : stockHistoryState;
+  useEffect(() => { if (token) fetchAll(); }, [token, fetchAll]);
+
+  // ── Derived data ──────────────────────────────────────────────────────────────
+
+  const activeFeedItems = useMemo(() => feedItems.filter(f => f.is_active), [feedItems]);
+
+  const feedByStation = useMemo(() => {
+    const map = new Map<string, { stationName: string; items: FeedItem[] }>();
+    feedItems.forEach(fi => {
+      const sid = fi.station_id;
+      if (!map.has(sid)) map.set(sid, { stationName: fi.stations?.station_name ?? sid, items: [] });
+      map.get(sid)!.items.push(fi);
+    });
+    return map;
+  }, [feedItems]);
+
+  // Station filter — admin sees current station (or all if none selected), others locked via API
+  const activeStationId = currentStation?.id ?? null;
+
+  const filteredFeedByStation = useMemo(() => {
+    if (!activeStationId) return feedByStation;
+    const entry = feedByStation.get(activeStationId);
+    if (!entry) return new Map();
+    return new Map([[activeStationId, entry]]);
+  }, [feedByStation, activeStationId]);
+
+  const stockInLogs = useMemo(() =>
+    feedLogs.filter(l => l.log_type === 'stock_in' && (!activeStationId || l.station_id === activeStationId)),
+    [feedLogs, activeStationId]);
+  const consumeLogs = useMemo(() =>
+    feedLogs.filter(l => l.log_type === 'consumption' && (!activeStationId || l.station_id === activeStationId)),
+    [feedLogs, activeStationId]);
+
+  // ── Feed Item CRUD ─────────────────────────────────────────────────────────────
 
   const openAddFeed = () => {
     setEditingFeed(null);
-    setFeedForm({ name: '', unit: 'kg', costPerUnit: '', threshold: '', status: true });
+    setFeedForm({ stationId: currentStation?.id ?? stations[0]?.id ?? '', name: '', unit: 'kg', lowStockThreshold: '100', initialStock: '0', isActive: true });
     setFeedModal(true);
   };
   const openEditFeed = (f: FeedItem) => {
     setEditingFeed(f);
-    setFeedForm({ name: f.name, unit: f.unit, costPerUnit: String(f.costPerUnit), threshold: String(f.threshold), status: f.status === 'Active' });
+    setFeedForm({ stationId: f.station_id, name: f.name, unit: f.unit, lowStockThreshold: String(f.low_stock_threshold), initialStock: '0', isActive: f.is_active });
     setFeedModal(true);
   };
-  const saveFeed = () => {
-    if (!feedForm.name || !feedForm.costPerUnit || !feedForm.threshold) { toast.error('Please fill all required fields'); return; }
-    const item: FeedItem = {
-      id: editingFeed?.id || feedItemsList.length + 1,
-      name: feedForm.name,
-      unit: feedForm.unit,
-      costPerUnit: Number(feedForm.costPerUnit),
-      threshold: Number(feedForm.threshold),
-      status: feedForm.status ? 'Active' : 'Inactive',
-    };
-    if (editingFeed) {
-      setFeedItemsList(prev => prev.map(f => f.id === editingFeed.id ? item : f));
-      toast.success('Feed item updated');
-    } else {
-      setFeedItemsList(prev => [...prev, item]);
-      toast.success('Feed item added');
-    }
-    setFeedModal(false);
+
+  const saveFeed = async () => {
+    if (!feedForm.name || !feedForm.unit) { toast.error('Please fill all required fields'); return; }
+    setFeedSaving(true);
+    try {
+      if (editingFeed) {
+        const res = await fetch(`/api/erp/feed/${editingFeed.id}`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: feedForm.name, unit: feedForm.unit, lowStockThreshold: Number(feedForm.lowStockThreshold), isActive: feedForm.isActive }),
+        });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+        const { feedItem } = await res.json();
+        setFeedItems(prev => prev.map(f => f.id === editingFeed.id ? { ...f, ...feedItem } : f));
+        toast.success('Feed item updated');
+      } else {
+        if (!feedForm.stationId) { toast.error('Please select a station'); return; }
+        const res = await fetch('/api/erp/feed', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stationId: feedForm.stationId, name: feedForm.name, unit: feedForm.unit, lowStockThreshold: Number(feedForm.lowStockThreshold), initialStock: Number(feedForm.initialStock) || 0 }),
+        });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+        const { feedItem } = await res.json();
+        const stationObj = stations.find(s => s.id === feedForm.stationId);
+        setFeedItems(prev => [...prev, { ...feedItem, stations: stationObj ? { station_name: stationObj.station_name, station_tag: stationObj.station_tag } : null }]);
+        toast.success('Feed item added');
+      }
+      setFeedModal(false);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Failed to save');
+    } finally { setFeedSaving(false); }
   };
 
-  const deleteFeed = (id: number) => { setDeleteModal({ type: 'feed', id }); };
-  const deleteConsumption = (id: number) => { setDeleteModal({ type: 'consumption', id }); };
-  const confirmDelete = () => {
+  const handleDeleteFeed = async () => {
     if (!deleteModal) return;
-    if (deleteModal.type === 'feed') {
-      setFeedItemsList(prev => prev.filter(f => f.id !== deleteModal.id));
+    setDeleteConfirming(true);
+    try {
+      const res = await fetch(`/api/erp/feed/${deleteModal.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+      setFeedItems(prev => prev.filter(f => f.id !== deleteModal.id));
       toast.success('Feed item deleted');
-    } else {
-      setConsumptionState(prev => prev.filter(c => c.id !== deleteModal.id));
-      toast.success('Consumption entry deleted');
-    }
-    setDeleteModal(null);
+      setDeleteModal(null);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Failed to delete');
+    } finally { setDeleteConfirming(false); }
   };
 
-  // Auto-calculate cost when quantity or feed changes in stock modal
-  const getAutoCost = () => {
-    const feed = feedItemsList.find(f => f.name === stockForm.feedItem);
-    if (feed && stockForm.quantity) return Number(stockForm.quantity) * feed.costPerUnit;
-    return 0;
+  // ── Stock In ───────────────────────────────────────────────────────────────────
+
+  const openStockModal = () => {
+    setStockForm({ feedItemId: '', stationId: isStationLocked ? (currentStation?.id ?? '') : '', quantity: '', cost: '', notes: '' });
+    setStockModal(true);
   };
 
-  const saveStock = () => {
-    if (!stockForm.station || !stockForm.feedItem || !stockForm.quantity) { toast.error('Please fill all required fields'); return; }
-    const qty = Number(stockForm.quantity);
-    const cost = stockForm.cost ? Number(stockForm.cost) : getAutoCost();
-    const feed = feedItemsList.find(f => f.name === stockForm.feedItem);
-    // Add to stock history
-    const entry: StockEntry = {
-      id: stockHistoryState.length + 1,
-      date: format(stockForm.date, 'yyyy-MM-dd'),
-      feedItem: stockForm.feedItem,
-      station: stockForm.station,
-      type: 'Stock In',
-      quantity: qty,
-      unit: feed?.unit || 'kg',
-      cost,
-      source: stockForm.source || 'Manual Entry',
-    };
-    setStockHistoryState(prev => [entry, ...prev]);
-    // Update station stock
-    setStationStocksState(prev => {
-      const updated = { ...prev };
-      const stationStock = updated[stockForm.station];
-      if (stationStock) {
-        const idx = stationStock.findIndex(s => s.feed === stockForm.feedItem);
-        if (idx >= 0) {
-          stationStock[idx] = { ...stationStock[idx], currentStock: stationStock[idx].currentStock + qty, lastRestocked: format(stockForm.date, 'yyyy-MM-dd') };
-        }
-      }
-      return updated;
-    });
-    toast.success('Stock added successfully');
-    setStockModal(false);
-    setStockForm({ station: '', feedItem: '', quantity: '', date: new Date(), source: '', cost: '' });
+  const saveStock = async () => {
+    if (!stockForm.feedItemId || !stockForm.stationId || !stockForm.quantity) { toast.error('Please fill all required fields'); return; }
+    setStockSaving(true);
+    try {
+      const res = await fetch('/api/erp/feed/logs', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedItemId: stockForm.feedItemId, stationId: stockForm.stationId, logType: 'stock_in', quantity: Number(stockForm.quantity), cost: stockForm.cost ? Number(stockForm.cost) : null, notes: stockForm.notes || null }),
+      });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+      toast.success('Stock added. Finance updated automatically.');
+      setStockModal(false);
+      await fetchAll();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Failed to add stock');
+    } finally { setStockSaving(false); }
   };
 
-  const saveConsumption = () => {
-    if (!consumeForm.station || !consumeForm.feedItem || !consumeForm.quantity || !consumeForm.loggedBy) { toast.error('Please fill all required fields'); return; }
-    const qty = Number(consumeForm.quantity);
-    const feed = feedItemsList.find(f => f.name === consumeForm.feedItem);
-    // Check available stock
-    const stationStock = stationStocksState[consumeForm.station];
-    const stockItem = stationStock?.find(s => s.feed === consumeForm.feedItem);
-    if (!stockItem || stockItem.currentStock < qty) {
-      toast.error('Insufficient stock — cannot consume more than available.');
-      return;
-    }
-    const cost = qty * (feed?.costPerUnit || 0);
-    const entry: ConsumptionEntry = {
-      id: consumptionState.length + 1,
-      date: format(consumeForm.date, 'yyyy-MM-dd'),
-      station: consumeForm.station,
-      feed: consumeForm.feedItem,
-      quantity: qty,
-      unit: feed?.unit || 'kg',
-      cost,
-      loggedBy: consumeForm.loggedBy,
-    };
-    setConsumptionState(prev => [entry, ...prev]);
-    // Deduct from stock
-    setStationStocksState(prev => {
-      const updated = { ...prev };
-      const ss = updated[consumeForm.station];
-      if (ss) {
-        const idx = ss.findIndex(s => s.feed === consumeForm.feedItem);
-        if (idx >= 0) ss[idx] = { ...ss[idx], currentStock: ss[idx].currentStock - qty };
-      }
-      return updated;
-    });
-    // Add stock out entry
-    setStockHistoryState(prev => [{
-      id: prev.length + 1,
-      date: format(consumeForm.date, 'yyyy-MM-dd'),
-      feedItem: consumeForm.feedItem,
-      station: consumeForm.station,
-      type: 'Stock Out' as const,
-      quantity: qty,
-      unit: feed?.unit || 'kg',
-      cost,
-      source: 'Daily Consumption',
-    }, ...prev]);
-    toast.success('Consumption logged');
-    setConsumeModal(false);
-    setConsumeForm({ station: '', feedItem: '', quantity: '', date: new Date(), loggedBy: '' });
+  // ── Consumption ────────────────────────────────────────────────────────────────
+
+  const openConsumeModal = () => {
+    setConsumeForm({ feedItemId: '', stationId: isStationLocked ? (currentStation?.id ?? '') : '', quantity: '', cost: '', notes: '' });
+    setConsumeModal(true);
   };
 
-  const getStockLevel = (current: number, threshold: number): 'green' | 'amber' | 'red' => {
-    if (current <= threshold) return 'red';
-    if (current <= threshold * 2) return 'amber';
-    return 'green';
+  const saveConsumption = async () => {
+    if (!consumeForm.feedItemId || !consumeForm.stationId || !consumeForm.quantity) { toast.error('Please fill all required fields'); return; }
+    setConsumeSaving(true);
+    try {
+      const res = await fetch('/api/erp/feed/logs', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedItemId: consumeForm.feedItemId, stationId: consumeForm.stationId, logType: 'consumption', quantity: Number(consumeForm.quantity), cost: consumeForm.cost ? Number(consumeForm.cost) : null, notes: consumeForm.notes || null }),
+      });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+      toast.success('Consumption logged. Finance updated automatically.');
+      setConsumeModal(false);
+      await fetchAll();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Failed to log consumption');
+    } finally { setConsumeSaving(false); }
   };
 
-  const getProgressColor = (level: 'green' | 'amber' | 'red') => {
-    if (level === 'red') return 'bg-destructive';
-    if (level === 'amber') return 'bg-amber-500';
-    return 'bg-primary';
-  };
+  // ── Render ─────────────────────────────────────────────────────────────────────
 
-  const activeFeeds = feedItemsList.filter(f => f.status === 'Active');
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2 erp-slide-up">
@@ -244,115 +292,117 @@ const FeedInventory = () => {
           <TabsTrigger value="consumption" className="gap-1.5"><ClipboardList className="h-4 w-4" />Consumption Log</TabsTrigger>
         </TabsList>
 
-        {/* ── TAB 1: Feed Items ── */}
+        {/* ── TAB 1: Feed Items ─────────────────────────────────────────────────── */}
         {!isWorker && (
           <TabsContent value="feed-items" className="space-y-4">
-            <div className="flex justify-end">
-              <Button onClick={openAddFeed} className="gap-1.5"><Plus className="h-4 w-4" />Add Feed Item</Button>
-            </div>
+            {canManage && (
+              <div className="flex justify-end">
+                <Button onClick={openAddFeed} className="gap-1.5"><Plus className="h-4 w-4" />Add Feed Item</Button>
+              </div>
+            )}
             <Card className="p-0 erp-glass-card-subtle erp-stagger-1">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Feed Name</TableHead>
                     <TableHead>Unit</TableHead>
-                    <TableHead className="text-right">Cost/Unit (PKR)</TableHead>
+                    <TableHead className="text-right">Current Stock</TableHead>
                     <TableHead className="text-right">Low Stock Threshold</TableHead>
+                    <TableHead>Station</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    {canManage && <TableHead className="text-right">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {feedItemsList.map(f => (
-                    <TableRow key={f.id} className="erp-table-row">
-                      <TableCell className="font-medium">{f.name}</TableCell>
-                      <TableCell>{f.unit}</TableCell>
-                      <TableCell className="text-right">{f.costPerUnit.toLocaleString()}</TableCell>
-                      <TableCell className="text-right">{f.threshold.toLocaleString()} {f.unit}</TableCell>
-                      <TableCell>
-                        <Badge variant={f.status === 'Active' ? 'default' : 'secondary'} className={f.status === 'Active' ? 'bg-primary/10 text-primary border-primary/20' : ''}>
-                          {f.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-sky-600 hover:text-sky-700 hover:bg-sky-50" onClick={() => openEditFeed(f)}><Edit className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-red-50" onClick={() => deleteFeed(f.id)}><Trash2 className="h-4 w-4" /></Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {feedItems.length === 0 ? (
+                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-10">No feed items found.</TableCell></TableRow>
+                  ) : (
+                    feedItems.map(f => {
+                      const level = getStockLevel(f.current_stock, f.low_stock_threshold);
+                      return (
+                        <TableRow key={f.id} className="erp-table-row">
+                          <TableCell className="font-medium">{f.name}</TableCell>
+                          <TableCell>{f.unit}</TableCell>
+                          <TableCell className="text-right">
+                            <span className={level === 'red' ? 'text-destructive font-semibold' : level === 'amber' ? 'text-amber-600 font-semibold' : ''}>
+                              {f.current_stock.toLocaleString()}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">{f.low_stock_threshold.toLocaleString()} {f.unit}</TableCell>
+                          <TableCell className="text-xs">{f.stations?.station_name ?? '—'}</TableCell>
+                          <TableCell>
+                            <Badge variant={f.is_active ? 'default' : 'secondary'} className={f.is_active ? 'bg-primary/10 text-primary border-primary/20' : ''}>
+                              {f.is_active ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </TableCell>
+                          {canManage && (
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-1">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-sky-600 hover:text-sky-700 hover:bg-sky-50" onClick={() => openEditFeed(f)}><Edit className="h-4 w-4" /></Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-red-50" onClick={() => setDeleteModal({ type: 'feed', id: f.id })}><Trash2 className="h-4 w-4" /></Button>
+                              </div>
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      );
+                    })
+                  )}
                 </TableBody>
               </Table>
             </Card>
           </TabsContent>
         )}
 
-        {/* ── TAB 2: Stock Management ── */}
+        {/* ── TAB 2: Stock Management ───────────────────────────────────────────── */}
         {!isWorker && (
           <TabsContent value="stock" className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-             {isAdmin ? (
-               <Select value={selectedStation} onValueChange={setSelectedStation}>
-                 <SelectTrigger className="w-full sm:w-[280px]"><SelectValue placeholder="Select Station" /></SelectTrigger>
-                 <SelectContent>
-                   <SelectItem value="all">All Stations</SelectItem>
-                   {stationNames.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                 </SelectContent>
-               </Select>
-             ) : (
-               <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                 <Package className="h-4 w-4 text-primary" />
-                 {assignedStation}
-               </div>
-             )}
-              <Button onClick={() => { setStockForm({ station: isStationLocked ? assignedStation : '', feedItem: '', quantity: '', date: new Date(), source: '', cost: '' }); setStockModal(true); }} className="gap-1.5">
-                <Plus className="h-4 w-4" />Add Stock
-              </Button>
-            </div>
+            {canManage && (
+              <div className="flex justify-end">
+                <Button onClick={openStockModal} className="gap-1.5"><Plus className="h-4 w-4" />Add Stock</Button>
+              </div>
+            )}
 
-            {/* Stock Overview Cards */}
-            {effectiveStations.map(station => {
-              const stocks = stationStocksState[station] || [];
-              return (
-                <div key={station} className="space-y-3">
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{station}</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                    {stocks.map(s => {
-                      const level = getStockLevel(s.currentStock, s.threshold);
-                      const pct = Math.min((s.currentStock / (s.threshold * 3)) * 100, 100);
-                      return (
-                        <Card key={s.feed} className={`border-l-[3px] ${level === 'red' ? 'border-l-destructive' : level === 'amber' ? 'border-l-amber-500' : 'border-l-primary'} erp-glass-card`}>
-                          <CardContent className="p-4 space-y-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${level === 'red' ? 'bg-red-100' : level === 'amber' ? 'bg-amber-100' : 'bg-sw-green-100'}`}>
-                                  <Wheat className={`h-4 w-4 ${level === 'red' ? 'text-destructive' : level === 'amber' ? 'text-amber-600' : 'text-primary'}`} />
-                                </div>
-                                <span className="font-medium text-sm">{s.feed}</span>
+            {[...filteredFeedByStation.entries()].map(([sid, { stationName, items }]) => (
+              <div key={sid} className="space-y-3">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{stationName}</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {items.map(fi => {
+                    const level = getStockLevel(fi.current_stock, fi.low_stock_threshold);
+                    const pct = Math.min((fi.current_stock / Math.max(fi.low_stock_threshold * 3, 1)) * 100, 100);
+                    return (
+                      <Card key={fi.id} className={`border-l-[3px] ${level === 'red' ? 'border-l-destructive' : level === 'amber' ? 'border-l-amber-500' : 'border-l-primary'} erp-glass-card`}>
+                        <CardContent className="p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${level === 'red' ? 'bg-red-100' : level === 'amber' ? 'bg-amber-100' : 'bg-sw-green-100'}`}>
+                                <Wheat className={`h-4 w-4 ${level === 'red' ? 'text-destructive' : level === 'amber' ? 'text-amber-600' : 'text-primary'}`} />
                               </div>
-                              {level === 'red' && <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4">LOW</Badge>}
+                              <span className="font-medium text-sm">{fi.name}</span>
                             </div>
-                            <div>
-                              <span className="text-2xl font-bold text-foreground">{s.currentStock.toLocaleString()}</span>
-                              <span className="text-sm text-muted-foreground ml-1">{s.unit}</span>
-                            </div>
-                            <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary">
-                              <div className={`h-full rounded-full transition-all ${getProgressColor(level)}`} style={{ width: `${pct}%` }} />
-                            </div>
-                            <p className="text-xs text-muted-foreground">Threshold: {s.threshold.toLocaleString()} {s.unit} · Restocked: {s.lastRestocked}</p>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
+                            {level === 'red' && <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4">LOW</Badge>}
+                          </div>
+                          <div>
+                            <span className="text-2xl font-bold text-foreground">{fi.current_stock.toLocaleString()}</span>
+                            <span className="text-sm text-muted-foreground ml-1">{fi.unit}</span>
+                          </div>
+                          <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary">
+                            <div className={`h-full rounded-full transition-all ${progressColor(level)}`} style={{ width: `${pct}%` }} />
+                          </div>
+                          <p className="text-xs text-muted-foreground">Threshold: {fi.low_stock_threshold.toLocaleString()} {fi.unit}</p>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
-              );
-            })}
+              </div>
+            ))}
 
-            {/* Stock History Table */}
+            {filteredFeedByStation.size === 0 && (
+              <p className="text-center text-muted-foreground py-10">No feed items found.</p>
+            )}
+
             <Card className="p-0 erp-glass-card-subtle erp-stagger-2">
-              <CardHeader className="pb-3"><CardTitle className="text-base">Stock History</CardTitle></CardHeader>
+              <CardHeader className="pb-3"><CardTitle className="text-base">Stock In History</CardTitle></CardHeader>
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
@@ -360,28 +410,26 @@ const FeedInventory = () => {
                       <TableHead>Date</TableHead>
                       <TableHead>Feed Item</TableHead>
                       <TableHead>Station</TableHead>
-                      <TableHead>Type</TableHead>
                       <TableHead className="text-right">Quantity</TableHead>
                       <TableHead className="text-right">Cost (PKR)</TableHead>
-                      <TableHead>Source</TableHead>
+                      <TableHead>Notes</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredStockHistory.map(e => (
-                      <TableRow key={e.id} className="erp-table-row">
-                        <TableCell>{e.date}</TableCell>
-                        <TableCell className="font-medium">{e.feedItem}</TableCell>
-                        <TableCell>{e.station}</TableCell>
-                        <TableCell>
-                          <Badge variant={e.type === 'Stock In' ? 'default' : 'destructive'} className={e.type === 'Stock In' ? 'bg-primary/10 text-primary border-primary/20' : ''}>
-                            {e.type}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">{e.quantity.toLocaleString()} {e.unit}</TableCell>
-                        <TableCell className="text-right">{e.cost.toLocaleString()}</TableCell>
-                        <TableCell>{e.source}</TableCell>
-                      </TableRow>
-                    ))}
+                    {stockInLogs.length === 0 ? (
+                      <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No stock-in records yet.</TableCell></TableRow>
+                    ) : (
+                      stockInLogs.map(l => (
+                        <TableRow key={l.id} className="erp-table-row">
+                          <TableCell>{new Date(l.logged_at).toLocaleDateString('en-PK')}</TableCell>
+                          <TableCell className="font-medium">{l.feed_items?.name ?? '—'}</TableCell>
+                          <TableCell>{l.stations?.station_name ?? '—'}</TableCell>
+                          <TableCell className="text-right">{l.quantity.toLocaleString()} {l.feed_items?.unit ?? ''}</TableCell>
+                          <TableCell className="text-right">{l.cost != null ? l.cost.toLocaleString() : '—'}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground">{l.notes ?? '—'}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -389,51 +437,47 @@ const FeedInventory = () => {
           </TabsContent>
         )}
 
-        {/* ── TAB 3: Consumption Log ── */}
+        {/* ── TAB 3: Consumption Log ────────────────────────────────────────────── */}
         <TabsContent value="consumption" className="space-y-4">
           <div className="flex justify-end">
-            <Button onClick={() => { setConsumeForm({ station: isStationLocked ? assignedStation : '', feedItem: '', quantity: '', date: new Date(), loggedBy: currentUser?.fullName || '' }); setConsumeModal(true); }} className="gap-1.5">
-              <Plus className="h-4 w-4" />Log Consumption
-            </Button>
+            <Button onClick={openConsumeModal} className="gap-1.5"><Plus className="h-4 w-4" />Log Consumption</Button>
           </div>
           <Card className="p-0 erp-glass-card-subtle erp-stagger-1">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>
-                  <TableHead>Station</TableHead>
                   <TableHead>Feed Item</TableHead>
+                  <TableHead>Station</TableHead>
                   <TableHead className="text-right">Quantity</TableHead>
                   <TableHead className="text-right">Cost (PKR)</TableHead>
                   <TableHead>Logged By</TableHead>
-                  {!isWorker && <TableHead className="text-right">Actions</TableHead>}
+                  <TableHead>Notes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredConsumption.map(c => (
-                  <TableRow key={c.id} className="erp-table-row">
-                    <TableCell>{c.date}</TableCell>
-                    <TableCell>{c.station}</TableCell>
-                    <TableCell className="font-medium">{c.feed}</TableCell>
-                    <TableCell className="text-right">{c.quantity.toLocaleString()} {c.unit}</TableCell>
-                    <TableCell className="text-right">{c.cost.toLocaleString()}</TableCell>
-                    <TableCell>{c.loggedBy}</TableCell>
-                    {!isWorker && (
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-red-50" onClick={() => deleteConsumption(c.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))}
+                {consumeLogs.length === 0 ? (
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-10">No consumption logs yet.</TableCell></TableRow>
+                ) : (
+                  consumeLogs.map(l => (
+                    <TableRow key={l.id} className="erp-table-row">
+                      <TableCell>{new Date(l.logged_at).toLocaleDateString('en-PK')}</TableCell>
+                      <TableCell className="font-medium">{l.feed_items?.name ?? '—'}</TableCell>
+                      <TableCell>{l.stations?.station_name ?? '—'}</TableCell>
+                      <TableCell className="text-right">{l.quantity.toLocaleString()} {l.feed_items?.unit ?? ''}</TableCell>
+                      <TableCell className="text-right">{l.cost != null ? l.cost.toLocaleString() : '—'}</TableCell>
+                      <TableCell>{l.farm_users?.full_name ?? '—'}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{l.notes ?? '—'}</TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </Card>
         </TabsContent>
       </Tabs>
 
-      {/* ── MODALS ── */}
+      {/* ── MODALS ──────────────────────────────────────────────────────────────── */}
 
       {/* Feed Item Modal */}
       <Dialog open={feedModal} onOpenChange={setFeedModal}>
@@ -443,6 +487,19 @@ const FeedInventory = () => {
             <DialogDescription>Manage the feed types used on the farm.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            {!editingFeed && (
+              <div className="space-y-2">
+                <Label>Station</Label>
+                {isStationLocked ? (
+                  <Input value={currentStation?.name ?? ''} disabled />
+                ) : (
+                  <Select value={feedForm.stationId} onValueChange={v => setFeedForm(p => ({ ...p, stationId: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Select station" /></SelectTrigger>
+                    <SelectContent>{stations.map(s => <SelectItem key={s.id} value={s.id}>{s.station_name}</SelectItem>)}</SelectContent>
+                  </Select>
+                )}
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Feed Name</Label>
               <Input value={feedForm.name} onChange={e => setFeedForm(p => ({ ...p, name: e.target.value }))} placeholder="e.g. Silage" />
@@ -450,33 +507,40 @@ const FeedInventory = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Unit</Label>
-                <Select value={feedForm.unit} onValueChange={(v: 'kg' | 'bag') => setFeedForm(p => ({ ...p, unit: v }))}>
+                <Select value={feedForm.unit} onValueChange={v => setFeedForm(p => ({ ...p, unit: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="kg">kg</SelectItem>
                     <SelectItem value="bag">bag</SelectItem>
+                    <SelectItem value="litre">litre</SelectItem>
+                    <SelectItem value="ton">ton</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Cost Per Unit (PKR)</Label>
-                <Input type="number" value={feedForm.costPerUnit} onChange={e => setFeedForm(p => ({ ...p, costPerUnit: e.target.value }))} />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
                 <Label>Low Stock Threshold</Label>
-                <Input type="number" value={feedForm.threshold} onChange={e => setFeedForm(p => ({ ...p, threshold: e.target.value }))} />
-              </div>
-              <div className="flex items-center gap-3 pt-6">
-                <Switch checked={feedForm.status} onCheckedChange={v => setFeedForm(p => ({ ...p, status: v }))} />
-                <Label>{feedForm.status ? 'Active' : 'Inactive'}</Label>
+                <Input type="number" min="0" value={feedForm.lowStockThreshold} onChange={e => setFeedForm(p => ({ ...p, lowStockThreshold: e.target.value }))} />
               </div>
             </div>
+            {!editingFeed && (
+              <div className="space-y-2">
+                <Label>Initial Stock (optional)</Label>
+                <Input type="number" min="0" value={feedForm.initialStock} onChange={e => setFeedForm(p => ({ ...p, initialStock: e.target.value }))} placeholder="0" />
+              </div>
+            )}
+            {editingFeed && (
+              <div className="flex items-center gap-3">
+                <Switch checked={feedForm.isActive} onCheckedChange={v => setFeedForm(p => ({ ...p, isActive: v }))} />
+                <Label>{feedForm.isActive ? 'Active' : 'Inactive'}</Label>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setFeedModal(false)}>Cancel</Button>
-            <Button onClick={saveFeed}>{editingFeed ? 'Update' : 'Add'}</Button>
+            <Button onClick={saveFeed} disabled={feedSaving}>
+              {feedSaving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+              {editingFeed ? 'Update' : 'Add'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -492,48 +556,38 @@ const FeedInventory = () => {
             <div className="space-y-2">
               <Label>Station</Label>
               {isStationLocked ? (
-                <Input value={assignedStation} disabled />
+                <Input value={currentStation?.name ?? ''} disabled />
               ) : (
-                <Select value={stockForm.station} onValueChange={v => setStockForm(p => ({ ...p, station: v }))}>
+                <Select value={stockForm.stationId} onValueChange={v => setStockForm(p => ({ ...p, stationId: v, feedItemId: '' }))}>
                   <SelectTrigger><SelectValue placeholder="Select station" /></SelectTrigger>
-                  <SelectContent>{stationNames.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                  <SelectContent>{stations.map(s => <SelectItem key={s.id} value={s.id}>{s.station_name}</SelectItem>)}</SelectContent>
                 </Select>
               )}
             </div>
             <div className="space-y-2">
               <Label>Feed Item</Label>
-              <Select value={stockForm.feedItem} onValueChange={v => setStockForm(p => ({ ...p, feedItem: v }))}>
+              <Select value={stockForm.feedItemId} onValueChange={v => setStockForm(p => ({ ...p, feedItemId: v }))}>
                 <SelectTrigger><SelectValue placeholder="Select feed" /></SelectTrigger>
-                <SelectContent>{activeFeeds.map(f => <SelectItem key={f.id} value={f.name}>{f.name}</SelectItem>)}</SelectContent>
+                <SelectContent>
+                  {activeFeedItems
+                    .filter(f => !stockForm.stationId || f.station_id === stockForm.stationId)
+                    .map(f => <SelectItem key={f.id} value={f.id}>{f.name} ({f.unit})</SelectItem>)}
+                </SelectContent>
               </Select>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Quantity</Label>
-                <Input type="number" value={stockForm.quantity} onChange={e => setStockForm(p => ({ ...p, quantity: e.target.value }))} />
+                <Input type="number" min="0" value={stockForm.quantity} onChange={e => setStockForm(p => ({ ...p, quantity: e.target.value }))} placeholder="e.g. 500" />
               </div>
               <div className="space-y-2">
-                <Label>Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !stockForm.date && 'text-muted-foreground')}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />{format(stockForm.date, 'PPP')}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={stockForm.date} onSelect={d => d && setStockForm(p => ({ ...p, date: d }))} className="p-3 pointer-events-auto" />
-                  </PopoverContent>
-                </Popover>
+                <Label>Cost (PKR, optional)</Label>
+                <Input type="number" min="0" value={stockForm.cost} onChange={e => setStockForm(p => ({ ...p, cost: e.target.value }))} placeholder="Total cost" />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Supplier / Source (optional)</Label>
-              <Input value={stockForm.source} onChange={e => setStockForm(p => ({ ...p, source: e.target.value }))} placeholder="e.g. Malik Feeds" />
-            </div>
-            <div className="space-y-2">
-              <Label>Cost (PKR)</Label>
-              <Input type="number" value={stockForm.cost || getAutoCost() || ''} onChange={e => setStockForm(p => ({ ...p, cost: e.target.value }))} />
-              <p className="text-xs text-muted-foreground flex items-center gap-1"><Info className="h-3 w-3" />Auto-calculated: quantity × cost per unit. Editable.</p>
+              <Label>Notes / Source (optional)</Label>
+              <Input value={stockForm.notes} onChange={e => setStockForm(p => ({ ...p, notes: e.target.value }))} placeholder="e.g. Malik Feeds supplier" />
             </div>
             <div className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground flex items-start gap-2">
               <Info className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
@@ -542,7 +596,9 @@ const FeedInventory = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setStockModal(false)}>Cancel</Button>
-            <Button onClick={saveStock}>Add Stock</Button>
+            <Button onClick={saveStock} disabled={stockSaving}>
+              {stockSaving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}Add Stock
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -558,52 +614,49 @@ const FeedInventory = () => {
             <div className="space-y-2">
               <Label>Station</Label>
               {isStationLocked ? (
-                <Input value={assignedStation} disabled />
+                <Input value={currentStation?.name ?? ''} disabled />
               ) : (
-                <Select value={consumeForm.station} onValueChange={v => setConsumeForm(p => ({ ...p, station: v }))}>
+                <Select value={consumeForm.stationId} onValueChange={v => setConsumeForm(p => ({ ...p, stationId: v, feedItemId: '' }))}>
                   <SelectTrigger><SelectValue placeholder="Select station" /></SelectTrigger>
-                  <SelectContent>{stationNames.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                  <SelectContent>{stations.map(s => <SelectItem key={s.id} value={s.id}>{s.station_name}</SelectItem>)}</SelectContent>
                 </Select>
               )}
             </div>
             <div className="space-y-2">
               <Label>Feed Item</Label>
-              <Select value={consumeForm.feedItem} onValueChange={v => setConsumeForm(p => ({ ...p, feedItem: v }))}>
+              <Select value={consumeForm.feedItemId} onValueChange={v => setConsumeForm(p => ({ ...p, feedItemId: v }))}>
                 <SelectTrigger><SelectValue placeholder="Select feed" /></SelectTrigger>
-                <SelectContent>{activeFeeds.map(f => <SelectItem key={f.id} value={f.name}>{f.name} ({f.unit})</SelectItem>)}</SelectContent>
+                <SelectContent>
+                  {activeFeedItems
+                    .filter(f => !consumeForm.stationId || f.station_id === consumeForm.stationId)
+                    .map(f => <SelectItem key={f.id} value={f.id}>{f.name} ({f.unit}) — {f.current_stock} available</SelectItem>)}
+                </SelectContent>
               </Select>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Quantity Used</Label>
-                <Input type="number" value={consumeForm.quantity} onChange={e => setConsumeForm(p => ({ ...p, quantity: e.target.value }))} />
+                <Input type="number" min="0" value={consumeForm.quantity} onChange={e => setConsumeForm(p => ({ ...p, quantity: e.target.value }))} placeholder="e.g. 50" />
               </div>
               <div className="space-y-2">
-                <Label>Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !consumeForm.date && 'text-muted-foreground')}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />{format(consumeForm.date, 'PPP')}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={consumeForm.date} onSelect={d => d && setConsumeForm(p => ({ ...p, date: d }))} className="p-3 pointer-events-auto" />
-                  </PopoverContent>
-                </Popover>
+                <Label>Cost (PKR, optional)</Label>
+                <Input type="number" min="0" value={consumeForm.cost} onChange={e => setConsumeForm(p => ({ ...p, cost: e.target.value }))} placeholder="Total cost" />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Logged By</Label>
-              <Input value={consumeForm.loggedBy} onChange={e => setConsumeForm(p => ({ ...p, loggedBy: e.target.value }))} placeholder="Worker/manager name" />
+              <Label>Notes (optional)</Label>
+              <Input value={consumeForm.notes} onChange={e => setConsumeForm(p => ({ ...p, notes: e.target.value }))} placeholder="e.g. Morning feeding" />
             </div>
             <div className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground flex items-start gap-2">
               <Info className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
-              Feed cost auto-posts to Finance as Feed Expense.
+              Insufficient stock will be rejected by the server. Finance auto-updates.
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setConsumeModal(false)}>Cancel</Button>
-            <Button onClick={saveConsumption}>Log Consumption</Button>
+            <Button onClick={saveConsumption} disabled={consumeSaving}>
+              {consumeSaving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}Log Consumption
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -617,7 +670,9 @@ const FeedInventory = () => {
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteModal(null)}>Cancel</Button>
-            <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+            <Button variant="destructive" onClick={handleDeleteFeed} disabled={deleteConfirming}>
+              {deleteConfirming ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}Delete
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

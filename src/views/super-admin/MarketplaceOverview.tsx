@@ -1,29 +1,65 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Store, Building2, AlertTriangle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { adminListings, activeFarms } from "@/data/super-admin";
+import { Store, Building2, AlertTriangle, Loader2 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+
+async function getToken(): Promise<string> {
+  const supabase = createClient();
+  const { data } = await supabase.auth.getSession();
+  return data.session?.access_token ?? "";
+}
+
+interface Listing {
+  id: string;
+  animal: string;
+  farm: string;
+  price: number;
+  date: string;
+  status: string;
+}
+
+interface FarmBreakdown {
+  id: string;
+  name: string;
+  listings: number;
+}
 
 const statusBadge = (status: string) => {
   const map: Record<string, string> = {
     Active: "bg-[#D1FAE5] text-[#065F46]",
-    Suspended: "bg-[#FEE2E2] text-[#991B1B]",
-    Paid: "bg-[#D1FAE5] text-[#065F46]",
-    Overdue: "bg-[#FEE2E2] text-[#991B1B]",
+    Sold: "bg-[#DBEAFE] text-[#1E40AF]",
+    Inactive: "bg-[#F3F4F6] text-[#374151]",
   };
   return <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${map[status] || "bg-muted text-muted-foreground"}`}>{status}</span>;
 };
 
 const MarketplaceOverview = () => {
-  const { toast } = useToast();
-  const [listings, setListings] = useState(adminListings);
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [farmBreakdown, setFarmBreakdown] = useState<FarmBreakdown[]>([]);
+  const [loading, setLoading] = useState(true);
   const [farmFilter, setFarmFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    const token = await getToken();
+    const res = await fetch("/api/super-admin/marketplace", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setListings(data.listings ?? []);
+      setFarmBreakdown(data.farmBreakdown ?? []);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const filtered = listings.filter((l) => {
     if (farmFilter !== "all" && l.farm !== farmFilter) return false;
@@ -32,19 +68,16 @@ const MarketplaceOverview = () => {
   });
 
   const activeCount = listings.filter((l) => l.status === "Active").length;
-  const suspendedCount = listings.filter((l) => l.status === "Suspended").length;
+  const soldCount = listings.filter((l) => l.status === "Sold").length;
   const activeFarmCount = new Set(listings.filter((l) => l.status === "Active").map((l) => l.farm)).size;
-
-  const toggleStatus = (id: number) => {
-    setListings((prev) => prev.map((l) => l.id === id ? { ...l, status: l.status === "Active" ? "Suspended" as const : "Active" as const } : l));
-    toast({ title: "Listing updated" });
-  };
 
   const stats = [
     { label: "Total Active Listings", value: activeCount, icon: Store, color: "text-sw-admin-green", bg: "bg-sw-admin-green/10" },
     { label: "Active Listing Farms", value: activeFarmCount, icon: Building2, color: "text-sw-sky-400", bg: "bg-sw-sky-400/10" },
-    { label: "Suspended Listings", value: suspendedCount, icon: AlertTriangle, color: "text-sw-admin-err", bg: "bg-sw-admin-err/10" },
+    { label: "Sold Listings", value: soldCount, icon: AlertTriangle, color: "text-sw-gold-400", bg: "bg-sw-gold-400/10" },
   ];
+
+  if (loading) return <div className="flex justify-center py-24"><Loader2 className="h-8 w-8 animate-spin text-sw-admin-green" /></div>;
 
   return (
     <div className="space-y-6">
@@ -73,17 +106,18 @@ const MarketplaceOverview = () => {
               <TableRow>
                 <TableHead>Farm Name</TableHead>
                 <TableHead>Active Listings</TableHead>
-                <TableHead>Fee Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {activeFarms.map((f) => (
+              {farmBreakdown.map((f) => (
                 <TableRow key={f.id}>
                   <TableCell className="font-medium">{f.name}</TableCell>
                   <TableCell>{f.listings}</TableCell>
-                  <TableCell>{statusBadge(f.feeStatus)}</TableCell>
                 </TableRow>
               ))}
+              {farmBreakdown.length === 0 && (
+                <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground py-8">No farms</TableCell></TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
@@ -107,7 +141,8 @@ const MarketplaceOverview = () => {
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Suspended">Suspended</SelectItem>
+                  <SelectItem value="Sold">Sold</SelectItem>
+                  <SelectItem value="Inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -117,34 +152,23 @@ const MarketplaceOverview = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
                 <TableHead>Animal</TableHead>
                 <TableHead>Farm</TableHead>
                 <TableHead>Price (PKR)</TableHead>
                 <TableHead>Listed</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((l) => (
+              {filtered.length === 0 ? (
+                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-10">No listings found</TableCell></TableRow>
+              ) : filtered.map((l) => (
                 <TableRow key={l.id}>
-                  <TableCell className="font-mono text-sm">#{l.id}</TableCell>
                   <TableCell>{l.animal}</TableCell>
                   <TableCell>{l.farm}</TableCell>
                   <TableCell>{l.price.toLocaleString()}</TableCell>
                   <TableCell>{l.date}</TableCell>
                   <TableCell>{statusBadge(l.status)}</TableCell>
-                  <TableCell>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className={l.status === "Active" ? "border-destructive text-destructive hover:bg-destructive/5 text-xs" : "border-sw-admin-green text-sw-admin-green hover:bg-sw-admin-green/5 text-xs"}
-                      onClick={() => toggleStatus(l.id)}
-                    >
-                      {l.status === "Active" ? "Suspend" : "Reactivate"}
-                    </Button>
-                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

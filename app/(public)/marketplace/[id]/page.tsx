@@ -1,5 +1,5 @@
-import ListingDetail from "@/views/ListingDetail";
+import ListingDetailView from "@/views/ListingDetail";
 
 export default function ListingDetailPage() {
-  return <ListingDetail />;
+  return <ListingDetailView />;
 }

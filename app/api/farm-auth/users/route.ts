@@ -20,7 +20,7 @@ const DB_TO_ROLE: Record<string, string> = {
 
 export async function GET(request: NextRequest) {
   const session = await verifyFarmSession(request);
-  if (!session || session.role !== "admin") {
+  if (!session || !["admin", "accounts"].includes(session.role)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

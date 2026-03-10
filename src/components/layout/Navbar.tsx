@@ -24,6 +24,7 @@ const navLinks = [
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { isLoggedIn, buyerUser, currentUser, buyerSignOut, logout } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
@@ -45,6 +46,7 @@ const Navbar = () => {
   };
 
   useEffect(() => {
+    setMounted(true);
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -91,7 +93,9 @@ const Navbar = () => {
               Register Your Farm
             </Link>
 
-            {isLoggedIn ? (
+            {!mounted ? (
+              <div className="w-[88px] h-[38px] opacity-0"></div>
+            ) : isLoggedIn ? (
               <div className="flex items-center gap-3 pl-2 border-l border-border">
                 <span className="text-sm font-medium text-sw-green-950/70">{displayName}</span>
                 <button onClick={handleLogout} className="text-sm text-sw-green-900 border border-border bg-sw-green-50 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 flex items-center gap-1 rounded-lg px-3 py-2 transition-all">
@@ -116,7 +120,7 @@ const Navbar = () => {
                     className="flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer text-foreground hover:bg-sw-green-50"
                   >
                     <Factory className="w-4 h-4 text-sw-green-600" />
-                    <span className="font-medium text-sw-green-950">Farm Owner</span>
+                    <span className="font-medium text-sw-green-950">Farm / Staff Login</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -157,7 +161,7 @@ const Navbar = () => {
                   <User className="w-5 h-5 text-sw-green-600" /> User Login
                 </Link>
                 <Link href="/farm-login" className="flex flex-col items-center justify-center gap-2 text-xs font-semibold px-2 py-4 rounded-xl border border-border text-sw-green-900 bg-sw-green-50 hover:bg-sw-green-100">
-                  <Factory className="w-5 h-5 text-sw-green-600" /> Farm Login
+                  <Factory className="w-5 h-5 text-sw-green-600" /> Farm / Staff
                 </Link>
               </div>
             )}

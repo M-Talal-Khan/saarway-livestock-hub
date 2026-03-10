@@ -31,6 +31,8 @@ interface Farm {
   farm_name: string;
   owner_name: string;
   city: string;
+  phone?: string;
+  email?: string;
   is_active: boolean;
   suspension_reason: string | null;
   suspended_at: string | null;
@@ -60,6 +62,7 @@ const FarmManagement = () => {
 
   const [rejectModal, setRejectModal] = useState<FarmRequest | null>(null);
   const [suspendModal, setSuspendModal] = useState<Farm | null>(null);
+  const [detailsModal, setDetailsModal] = useState<Farm | null>(null);
   const [reason, setReason] = useState("");
   const [acting, setActing] = useState(false);
 
@@ -172,6 +175,14 @@ const FarmManagement = () => {
       toast({ title: "Failed to reset password", description: data.error, variant: "destructive" });
       return;
     }
+
+    // Clear the password reset tag
+    setFarms((prev) =>
+      prev.map((f) =>
+        f.id === farm.id ? { ...f, passwordResetRequested: false } : f
+      )
+    );
+
     setCredentials({ farmNumber: data.farmNumber, username: data.username, password: data.password });
   };
 
@@ -341,6 +352,14 @@ const FarmManagement = () => {
                           <div className="flex gap-2">
                             <Button
                               size="sm"
+                              variant="outline"
+                              className="text-xs border-sw-sky-400 text-sw-sky-400 hover:bg-sw-sky-400/5"
+                              onClick={() => setDetailsModal(f)}
+                            >
+                              Details
+                            </Button>
+                            <Button
+                              size="sm"
                               variant={f.passwordResetRequested ? "default" : "outline"}
                               className="text-xs"
                               onClick={() => handleResetPassword(f)}
@@ -402,13 +421,23 @@ const FarmManagement = () => {
                         <TableCell className="max-w-xs truncate">{f.suspension_reason ?? "—"}</TableCell>
                         <TableCell>{formatDate(f.suspended_at)}</TableCell>
                         <TableCell>
-                          <Button
-                            size="sm"
-                            className="bg-sw-admin-green text-sw-admin-bg hover:bg-sw-admin-green/90 text-xs"
-                            onClick={() => handleReactivate(f)}
-                          >
-                            Reactivate
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs border-sw-sky-400 text-sw-sky-400 hover:bg-sw-sky-400/5"
+                              onClick={() => setDetailsModal(f)}
+                            >
+                              Details
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="bg-sw-admin-green text-sw-admin-bg hover:bg-sw-admin-green/90 text-xs"
+                              onClick={() => handleReactivate(f)}
+                            >
+                              Reactivate
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -488,6 +517,68 @@ const FarmManagement = () => {
               {acting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               Confirm Suspend
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Farm Details Dialog ── */}
+      <Dialog open={!!detailsModal} onOpenChange={() => setDetailsModal(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Farm Details</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4 pr-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-muted-foreground block text-xs">Farm Name</span>
+                <span className="font-medium text-foreground">{detailsModal?.farm_name}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground block text-xs">Farm ID</span>
+                <span className="font-mono text-foreground">{detailsModal?.farm_number}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground block text-xs">Owner Name</span>
+                <span className="font-medium text-foreground">{detailsModal?.owner_name}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground block text-xs">City</span>
+                <span className="font-medium text-foreground">{detailsModal?.city}</span>
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-4 border-t">
+              <div>
+                <span className="text-muted-foreground block text-xs">Email Address</span>
+                <a
+                  href={`mailto:${detailsModal?.email}`}
+                  className="font-medium text-sw-sky-400 hover:underline inline-flex items-center gap-2"
+                >
+                  {detailsModal?.email || "No email provided"}
+                </a>
+              </div>
+              <div>
+                <span className="text-muted-foreground block text-xs">Phone Number</span>
+                <a
+                  href={`tel:${detailsModal?.phone}`}
+                  className="font-medium text-sw-sky-400 hover:underline inline-flex items-center gap-2"
+                >
+                  {detailsModal?.phone || "No phone provided"}
+                </a>
+              </div>
+            </div>
+
+            {!detailsModal?.is_active && detailsModal?.suspension_reason && (
+              <div className="pt-4 border-t">
+                <span className="text-muted-foreground block text-xs mb-1">Suspension Reason</span>
+                <p className="text-sm bg-destructive/10 text-destructive p-3 rounded-md border border-destructive/20">
+                  {detailsModal.suspension_reason}
+                </p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDetailsModal(null)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -7,6 +7,8 @@ import { SuperAdminAuthProvider } from "@/context/SuperAdminAuthContext";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 
+import FloatingErpButton from "@/components/FloatingErpButton";
+
 const queryClient = new QueryClient();
 
 export default function Providers({ children }: { children: React.ReactNode }) {
@@ -17,6 +19,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           <SuperAdminAuthProvider>
             <Toaster />
             <Sonner />
+            <FloatingErpButton />
             {children}
           </SuperAdminAuthProvider>
         </AuthProvider>

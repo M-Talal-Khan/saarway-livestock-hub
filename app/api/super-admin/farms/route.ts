@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("farms")
-    .select("id, farm_number, farm_name, owner_name, city, is_active, suspension_reason, suspended_at, onboarded_at")
+    .select("id, farm_number, farm_name, owner_name, email, phone, city, is_active, suspension_reason, suspended_at, onboarded_at")
     .order("farm_number", { ascending: true });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -18,10 +18,10 @@ export async function GET(request: NextRequest) {
   const farmIds = (data ?? []).map((f) => f.id);
   const { data: resetRequests } = farmIds.length
     ? await admin
-        .from("password_reset_requests")
-        .select("farm_id")
-        .in("farm_id", farmIds)
-        .eq("status", "pending")
+      .from("password_reset_requests")
+      .select("farm_id")
+      .in("farm_id", farmIds)
+      .eq("status", "pending")
     : { data: [] };
 
   const farmsWithResets = new Set((resetRequests ?? []).map((r) => r.farm_id));
