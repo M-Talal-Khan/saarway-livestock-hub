@@ -42,8 +42,8 @@ const ERPSidebar = () => {
   const { currentUser } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
-  const { state } = useSidebar();
-  const collapsed = state === 'collapsed';
+  const { state, isMobile } = useSidebar();
+  const collapsed = state === 'collapsed' && !isMobile;
   const role = currentUser?.role || 'Admin';
 
   const visibleModules = modules.filter(m => m.roles.includes(role) || m.comingSoon);
