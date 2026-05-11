@@ -3,9 +3,11 @@
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { MapPin, Phone, ArrowLeft, Loader2, ChevronLeft, ChevronRight, X, LogIn } from 'lucide-react';
+import { MapPin, Phone, ArrowLeft, Loader2, ChevronLeft, ChevronRight, X, LogIn, Tag, Beef, Smile, Weight, PawPrint, Palette, CalendarDays, FileText, Building2, Navigation } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { parsePhotoUrls } from '@/lib/imageUtils';
+import { TrustScoreBadge, TrustScorePanel } from '@/components/marketplace/TrustScore';
+import type { MarketplaceTrustScore } from '@/lib/marketplace-trust';
 
 interface ListingDetail {
   id: string;
@@ -14,9 +16,10 @@ interface ListingDetail {
   description: string | null;
   listed_at: string;
   farm_id: string;
+  trust_score?: MarketplaceTrustScore;
   cattle: { cattle_code: string; breed: string; teeth: number; current_weight: number; gender: string; coat_color: string | null } | null;
   stations: { station_name: string; station_tag: string; city: string } | null;
-  farms: { id: string; farm_name: string; city: string } | null;
+  farms: { id: string; farm_name: string; city: string; is_active?: boolean; onboarded_at?: string | null } | null;
 }
 
 interface MoreListing {
@@ -35,7 +38,7 @@ const PhotoGallery = ({ photoUrl, breed }: { photoUrl: string | null; breed: str
 
   if (urls.length === 0) {
     return (
-      <div className="h-64 md:h-96 bg-secondary rounded-xl flex items-center justify-center mb-6">
+      <div className="h-64 md:h-[28rem] bg-white/30 backdrop-blur-sm rounded-[2rem] flex items-center justify-center mb-6 border border-white/40">
         <span className="text-7xl">🐄</span>
       </div>
     );
@@ -44,9 +47,8 @@ const PhotoGallery = ({ photoUrl, breed }: { photoUrl: string | null; breed: str
   return (
     <>
       <div className="mb-6 space-y-3">
-        {/* Main image */}
-        <div className="relative h-64 md:h-96 bg-secondary rounded-xl overflow-hidden group cursor-zoom-in" onClick={() => setLightbox(true)}>
-          <img src={urls[idx]} alt={breed} className="w-full h-full object-cover transition-opacity duration-200" />
+        <div className="relative h-64 md:h-[28rem] bg-white/20 rounded-[2rem] overflow-hidden group cursor-zoom-in border border-white/40" onClick={() => setLightbox(true)}>
+          <img src={urls[idx]} alt={breed} loading="lazy" className="w-full h-full object-contain transition-opacity duration-200" />
           {urls.length > 1 && (
             <>
               <button
@@ -69,14 +71,13 @@ const PhotoGallery = ({ photoUrl, breed }: { photoUrl: string | null; breed: str
             </>
           )}
         </div>
-        {/* Thumbnails */}
         {urls.length > 1 && (
           <div className="flex gap-2">
             {urls.map((url, i) => (
               <button
                 key={i}
                 onClick={() => setIdx(i)}
-                className={`w-20 h-16 rounded-lg overflow-hidden border-2 transition-colors flex-shrink-0 ${i === idx ? 'border-primary' : 'border-border hover:border-primary/50'}`}
+                className={`w-20 h-16 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 ${i === idx ? 'border-sw-green-500 shadow-md' : 'border-white/40 hover:border-sw-green-300/60'}`}
                 aria-label={`Photo ${i + 1}`}
               >
                 <img src={url} alt={`${breed} ${i + 1}`} className="w-full h-full object-cover" />
@@ -86,7 +87,6 @@ const PhotoGallery = ({ photoUrl, breed }: { photoUrl: string | null; breed: str
         )}
       </div>
 
-      {/* Lightbox */}
       {lightbox && (
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center" onClick={() => setLightbox(false)}>
           <button onClick={() => setLightbox(false)} className="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2 hover:bg-black/80">
@@ -109,7 +109,6 @@ const PhotoGallery = ({ photoUrl, breed }: { photoUrl: string | null; breed: str
         </div>
       )}
     </>
-
   );
 };
 
@@ -172,7 +171,6 @@ const ListingDetailView = () => {
       .finally(() => setLoading(false));
   }, [id]);
 
-  // Wait for auth to settle or listing to load
   if (loading || buyerLoading) {
     return (
       <main className="pt-24 pb-16 bg-background min-h-screen flex items-center justify-center">
@@ -181,7 +179,6 @@ const ListingDetailView = () => {
     );
   }
 
-  // If auth has settled and user is not logged in, show the gate
   if (!isLoggedIn) {
     return (
       <main className="pt-32 pb-24 sw-mesh-gradient min-h-screen flex items-center justify-center">
@@ -211,89 +208,182 @@ const ListingDetailView = () => {
   }
 
   return (
-    <main className="pt-20 pb-16 bg-background min-h-screen">
-      <div className="container mx-auto px-4 max-w-4xl">
-        <Link href="/marketplace" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary mb-6">
-          <ArrowLeft className="w-4 h-4" /> Back to Marketplace
+    <main className="pt-20 pb-16 sw-mesh-gradient min-h-screen">
+      <div className="container mx-auto px-4 max-w-6xl">
+        <Link href="/marketplace" className="inline-flex items-center gap-2 text-sm font-semibold text-[#050f05]/60 hover:text-[#050f05] transition-colors mb-8 group">
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Marketplace
         </Link>
 
-        {/* Photo Gallery */}
-        <PhotoGallery photoUrl={listing.photo_url} breed={listing.cattle?.breed} />
-
-        {/* Price */}
-        <h1 className="text-3xl font-bold text-primary mb-4">{formatPrice(listing.asking_price)}</h1>
-
-        {/* WhatsApp Top */}
-        <div className="mb-8">
-          <WhatsAppButton listingId={listing.id} breed={listing.cattle?.breed ?? 'livestock'} description={listing.description} />
-        </div>
-
-        {/* Details Grid */}
-        <section className="bg-card rounded-xl p-6 border border-border mb-8">
-          <h2 className="text-xl font-semibold text-foreground mb-4">Animal Details</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {[
-              { label: 'Cattle Code', value: listing.cattle?.cattle_code ?? '—' },
-              { label: 'Breed', value: listing.cattle?.breed ?? '—' },
-              { label: 'Teeth', value: listing.cattle?.teeth?.toString() ?? '—' },
-              { label: 'Weight', value: listing.cattle?.current_weight ? `${listing.cattle.current_weight} kg` : '—' },
-              { label: 'Gender', value: listing.cattle?.gender ?? '—' },
-              { label: 'Coat Color', value: listing.cattle?.coat_color ?? '—' },
-              { label: 'Listed', value: new Date(listing.listed_at).toLocaleDateString('en-PK') },
-            ].map(item => (
-              <div key={item.label}>
-                <p className="text-xs text-muted-foreground">{item.label}</p>
-                <p className="font-medium text-foreground">{item.value}</p>
-              </div>
-            ))}
+        {/* ── Hero: Two-Column Layout ── */}
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 mb-10">
+          {/* Left Column — Photo */}
+          <div>
+            <PhotoGallery photoUrl={listing.photo_url} breed={listing.cattle?.breed} />
           </div>
-        </section>
 
-        {/* Description */}
-        {stripWaTag(listing.description) && (
-          <section className="mb-8">
-            <h2 className="text-xl font-semibold text-foreground mb-2">Description</h2>
-            <p className="text-muted-foreground">{stripWaTag(listing.description)}</p>
-          </section>
-        )}
+          {/* Right Column — Key Info */}
+          <div className="flex flex-col gap-6">
+            {/* Breed badge + teeth */}
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-sw-green-100 text-sm font-bold text-[#050f05]">
+                <Beef className="w-4 h-4" /> {listing.cattle?.breed ?? 'Unknown Breed'}
+              </span>
+              {listing.cattle?.teeth != null && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#050f05]/5 text-xs font-bold text-[#050f05]/70">
+                  <Smile className="w-3.5 h-3.5" /> {listing.cattle.teeth} Teeth
+                </span>
+              )}
+            </div>
 
-        {/* Farm */}
-        <section className="bg-card rounded-xl p-6 border border-border mb-8">
-          <h2 className="text-xl font-semibold text-foreground mb-2">Farm Details</h2>
-          <p className="font-medium text-foreground">
-            <Link href={`/farms/${listing.farms?.id}`} className="text-primary hover:underline">
-              {listing.farms?.farm_name ?? '—'}
+            {/* Price */}
+            <h1 className="text-4xl md:text-5xl font-black text-[#050f05] tracking-tight">{formatPrice(listing.asking_price)}</h1>
+
+            {/* Trust Badge */}
+            <TrustScoreBadge trustScore={listing.trust_score} />
+
+            {/* Quick Stats Row */}
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { icon: <Weight className="w-4 h-4" />, label: 'Weight', value: listing.cattle?.current_weight ? `${listing.cattle.current_weight} kg` : '—' },
+                { icon: <PawPrint className="w-4 h-4" />, label: 'Gender', value: listing.cattle?.gender ?? '—' },
+                { icon: <Palette className="w-4 h-4" />, label: 'Color', value: listing.cattle?.coat_color ?? '—' },
+              ].map(s => (
+                <div key={s.label} className="bg-white/50 backdrop-blur-sm rounded-2xl p-4 border border-white/40 text-center">
+                  <div className="flex items-center justify-center text-[#050f05]/40 mb-1.5">{s.icon}</div>
+                  <p className="text-[10px] font-bold text-[#050f05]/40 uppercase tracking-widest">{s.label}</p>
+                  <p className="text-sm font-black text-[#050f05] mt-0.5">{s.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* WhatsApp Contact */}
+            <WhatsAppButton listingId={listing.id} breed={listing.cattle?.breed ?? 'livestock'} description={listing.description} />
+
+            {/* Farm Link (compact) */}
+            <Link href={`/farms/${listing.farms?.id}`} className="flex items-center gap-3 bg-white/40 backdrop-blur-sm rounded-2xl px-5 py-4 border border-white/40 hover:border-sw-green-300/40 transition-all group/farm">
+              <div className="w-10 h-10 rounded-xl bg-sw-green-100 flex items-center justify-center flex-shrink-0">
+                <Building2 className="w-5 h-5 text-[#050f05]" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-black text-[#050f05] group-hover/farm:text-sw-green-700 transition-colors truncate">{listing.farms?.farm_name ?? '—'}</p>
+                <p className="text-xs text-[#050f05]/50 flex items-center gap-1">
+                  <MapPin className="w-3 h-3 flex-shrink-0" /> {listing.stations?.city ?? listing.farms?.city ?? '—'}
+                </p>
+              </div>
+              <ArrowLeft className="w-4 h-4 ml-auto text-[#050f05]/30 rotate-180 group-hover/farm:translate-x-1 transition-transform flex-shrink-0" />
             </Link>
-          </p>
-          <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-            <MapPin className="w-3 h-3" /> {listing.stations?.city ?? listing.farms?.city ?? '—'}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">Station: {listing.stations?.station_name ?? '—'}</p>
-        </section>
-
-        {/* WhatsApp Bottom */}
-        <div className="mb-10">
-          <WhatsAppButton listingId={listing.id} breed={listing.cattle?.breed ?? 'livestock'} description={listing.description} />
+          </div>
         </div>
 
-        {/* More from this farm */}
+        {/* ── Details Sections ── */}
+        <div className="grid lg:grid-cols-3 gap-8 mb-10">
+          {/* Animal Details — spans 2 cols */}
+          <section className="lg:col-span-2 bg-white/50 backdrop-blur-xl rounded-[2rem] p-8 border border-white/40 shadow-lg">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-sw-green-100 flex items-center justify-center">
+                <Tag className="w-5 h-5 text-[#050f05]" />
+              </div>
+              <h2 className="text-xl font-black text-[#050f05]">Animal Details</h2>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { icon: <Tag className="w-4 h-4" />, label: 'Cattle Code', value: listing.cattle?.cattle_code ?? '—' },
+                { icon: <Beef className="w-4 h-4" />, label: 'Breed', value: listing.cattle?.breed ?? '—' },
+                { icon: <Smile className="w-4 h-4" />, label: 'Teeth', value: listing.cattle?.teeth?.toString() ?? '—' },
+                { icon: <Weight className="w-4 h-4" />, label: 'Weight', value: listing.cattle?.current_weight ? `${listing.cattle.current_weight} kg` : '—' },
+                { icon: <PawPrint className="w-4 h-4" />, label: 'Gender', value: listing.cattle?.gender ?? '—' },
+                { icon: <Palette className="w-4 h-4" />, label: 'Coat Color', value: listing.cattle?.coat_color ?? '—' },
+                { icon: <CalendarDays className="w-4 h-4" />, label: 'Listed', value: new Date(listing.listed_at).toLocaleDateString('en-PK') },
+              ].map(item => (
+                <div key={item.label} className="bg-[#050f05]/[0.02] rounded-xl p-4 border border-[#050f05]/[0.04]">
+                  <div className="flex items-center gap-2 text-[#050f05]/40 mb-2">{item.icon}<span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span></div>
+                  <p className="font-bold text-[#050f05] text-sm">{item.value}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Farm Details — right column (small) */}
+          <section className="bg-white/50 backdrop-blur-xl rounded-[2rem] p-8 border border-white/40 shadow-lg flex flex-col">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-sw-green-100 flex items-center justify-center">
+                <Building2 className="w-5 h-5 text-[#050f05]" />
+              </div>
+              <h2 className="text-xl font-black text-[#050f05]">Farm Details</h2>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-sw-green-100/60 flex items-center justify-center">
+                  <Building2 className="w-4 h-4 text-[#050f05]/60" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-[#050f05]/40 uppercase tracking-widest">Farm Name</p>
+                  <Link href={`/farms/${listing.farms?.id}`} className="text-sm font-bold text-sw-green-700 hover:underline">{listing.farms?.farm_name ?? '—'}</Link>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-sw-green-100/60 flex items-center justify-center">
+                  <MapPin className="w-4 h-4 text-[#050f05]/60" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-[#050f05]/40 uppercase tracking-widest">City</p>
+                  <p className="text-sm font-bold text-[#050f05]">{listing.stations?.city ?? listing.farms?.city ?? '—'}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-sw-green-100/60 flex items-center justify-center">
+                  <Navigation className="w-4 h-4 text-[#050f05]/60" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-[#050f05]/40 uppercase tracking-widest">Station</p>
+                  <p className="text-sm font-bold text-[#050f05]">{listing.stations?.station_name ?? '—'}</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* ── Description + Trust Score Row (mirrors Animal Details + Farm Details) ── */}
+        <div className="grid lg:grid-cols-3 gap-8 mb-10">
+          {/* Description — spans 2 cols */}
+          <section className="lg:col-span-2 bg-white/50 backdrop-blur-xl rounded-[2rem] p-8 border border-white/40 shadow-lg">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-sw-green-100 flex items-center justify-center">
+                <FileText className="w-5 h-5 text-[#050f05]" />
+              </div>
+              <h2 className="text-xl font-black text-[#050f05]">Description</h2>
+            </div>
+            {stripWaTag(listing.description) ? (
+              <p className="text-[#050f05]/70 leading-relaxed text-[15px] whitespace-pre-line">{stripWaTag(listing.description)}</p>
+            ) : (
+              <p className="text-[#050f05]/30 italic text-sm">No description provided for this listing.</p>
+            )}
+          </section>
+
+          {/* Trust Score — right column (small, same size as Farm Details) */}
+          <div>
+            <TrustScorePanel trustScore={listing.trust_score} />
+          </div>
+        </div>
+
+        {/* ── More from this farm ── */}
         {moreListing.length > 0 && (
           <section>
-            <h2 className="text-xl font-semibold text-foreground mb-4">More from {listing.farms?.farm_name}</h2>
-            <div className="grid sm:grid-cols-3 gap-4">
+            <h2 className="text-2xl font-black text-[#050f05] mb-6">More from {listing.farms?.farm_name}</h2>
+            <div className="grid sm:grid-cols-3 gap-6">
               {moreListing.map(l => (
-                <Link key={l.id} href={`/marketplace/${l.id}`} className="bg-card rounded-xl border border-border overflow-hidden sw-card-hover">
-                  <div className="h-28 bg-secondary flex items-center justify-center overflow-hidden">
+                <Link key={l.id} href={`/marketplace/${l.id}`} className="group bg-white/50 backdrop-blur-xl rounded-[2rem] border border-white/40 overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                  <div className="h-36 bg-sw-green-100/30 flex items-center justify-center overflow-hidden">
                     {l.photo_url ? (() => {
                       const src = l.photo_url!.startsWith('[') ? JSON.parse(l.photo_url!)[0] : l.photo_url;
-                      return <img src={src} alt={l.cattle?.breed} className="w-full h-full object-cover" />;
+                      return <img src={src} alt={l.cattle?.breed} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />;
                     })() : (
-                      <span className="text-3xl">🐄</span>
+                      <span className="text-4xl">🐄</span>
                     )}
                   </div>
-                  <div className="p-3">
-                    <p className="text-sm font-medium text-foreground">{l.cattle?.breed} · {l.cattle?.current_weight}kg</p>
-                    <p className="font-bold text-primary text-sm">{formatPrice(l.asking_price)}</p>
+                  <div className="p-5">
+                    <p className="text-sm font-bold text-[#050f05]">{l.cattle?.breed} · {l.cattle?.current_weight}kg</p>
+                    <p className="font-black text-sw-green-700 mt-1">{formatPrice(l.asking_price)}</p>
                   </div>
                 </Link>
               ))}
@@ -303,6 +393,7 @@ const ListingDetailView = () => {
       </div>
     </main>
   );
+
 };
 
 export default ListingDetailView;

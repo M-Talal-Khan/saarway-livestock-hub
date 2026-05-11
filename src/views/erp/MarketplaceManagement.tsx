@@ -16,6 +16,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { compressImage, parsePhotoUrls } from '@/lib/imageUtils';
+import { TrustScorePanel } from '@/components/marketplace/TrustScore';
+import type { MarketplaceTrustScore } from '@/lib/marketplace-trust';
 
 interface CattleRef {
   id: string;
@@ -48,35 +50,37 @@ const ImageCarousel = ({ urls }: { urls: string[] }) => {
   const [idx, setIdx] = useState(0);
   if (urls.length === 0) {
     return (
-      <div className="h-36 bg-sw-green-50 flex items-center justify-center text-xs text-muted-foreground">
-        No photo
+      <div className="h-48 bg-gradient-to-br from-sw-green-50 to-sw-green-100/50 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+        <Camera className="h-8 w-8 text-sw-green-300" />
+        <span className="text-xs font-medium">No photo</span>
       </div>
     );
   }
   if (urls.length === 1) {
     return (
-      <div className="h-36 overflow-hidden bg-sw-green-50">
-        <img src={urls[0]} alt="listing" className="w-full h-full object-cover" />
+      <div className="h-48 overflow-hidden bg-[#050f05]/5 flex items-center justify-center">
+        <img src={urls[0]} alt="listing" loading="lazy" className="w-full h-full object-contain transition-transform duration-500 hover:scale-105" />
       </div>
     );
   }
   const prev = (e: React.MouseEvent) => { e.stopPropagation(); setIdx(i => (i - 1 + urls.length) % urls.length); };
   const next = (e: React.MouseEvent) => { e.stopPropagation(); setIdx(i => (i + 1) % urls.length); };
   return (
-    <div className="relative h-36 bg-sw-green-50 group overflow-hidden">
-      <img src={urls[idx]} alt={`photo ${idx + 1}`} className="w-full h-full object-cover transition-opacity duration-200" />
-      <button onClick={prev} className="absolute left-1 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+    <div className="relative h-48 bg-[#050f05]/5 group overflow-hidden flex items-center justify-center">
+      <img src={urls[idx]} alt={`photo ${idx + 1}`} loading="lazy" className="w-full h-full object-contain transition-all duration-300" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-all shadow-md">
         <ChevronLeft className="h-4 w-4" />
       </button>
-      <button onClick={next} className="absolute right-1 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+      <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-all shadow-md">
         <ChevronRight className="h-4 w-4" />
       </button>
-      <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-1">
+      <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1.5">
         {urls.map((_, i) => (
-          <span key={i} className={`h-1.5 w-1.5 rounded-full transition-colors ${i === idx ? 'bg-white' : 'bg-white/50'}`} />
+          <span key={i} className={`h-1.5 rounded-full transition-all ${i === idx ? 'bg-white w-4' : 'bg-white/50 w-1.5'}`} />
         ))}
       </div>
-      <span className="absolute top-1.5 right-1.5 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+      <span className="absolute top-2.5 right-2.5 bg-black/50 backdrop-blur-sm text-white text-[10px] font-medium px-2 py-0.5 rounded-full">
         {idx + 1}/{urls.length}
       </span>
     </div>
@@ -272,7 +276,10 @@ const MarketplaceManagement = () => {
 
   const [listings, setListings] = useState<Listing[]>([]);
   const [cattle, setCattle] = useState<CattleRef[]>([]);
+  const [trustScore, setTrustScore] = useState<MarketplaceTrustScore | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const [trustOpen, setTrustOpen] = useState(false);
 
   const [stationFilter, setStationFilter] = useState(currentStation?.id ?? 'All');
 
@@ -321,6 +328,7 @@ const MarketplaceManagement = () => {
       ]);
       const [ld, cd, fd] = await Promise.all([lr.json(), cr.json(), fr.json()]);
       setListings(ld.listings ?? []);
+      setTrustScore(ld.trust_score ?? null);
       setCattle(cd.cattle ?? []);
       if (fd.farm?.phone) setFarmPhone(fd.farm.phone);
     } catch {
@@ -488,10 +496,13 @@ const MarketplaceManagement = () => {
             </Select>
           )}
           {canEdit && (
-            <Button onClick={() => { setCreateForm({ cattleId: '', askingPrice: '', description: '', whatsapp: farmPhone }); setPickerOpen(false); setPickerSearch(''); setPickerStatus(''); setCreatePhotos([]); setCreateOpen(true); }} className="gap-1.5 h-9">
+            <Button onClick={() => { setCreateForm({ cattleId: '', askingPrice: '', description: '', whatsapp: farmPhone }); setPickerOpen(false); setPickerSearch(''); setPickerStatus(''); setCreatePhotos([]); setCreateOpen(true); }} className="gap-1.5 h-9 shadow-sm">
               <Plus className="h-4 w-4" /> Create Listing
             </Button>
           )}
+          <Button variant="outline" onClick={() => setTrustOpen(true)} className="gap-1.5 h-9 bg-white hover:bg-sw-green-50 text-sw-green-700 border-sw-green-200 shadow-sm">
+            <Info className="h-4 w-4" /> View Trust Score
+          </Button>
         </div>
       </div>
 
@@ -504,42 +515,69 @@ const MarketplaceManagement = () => {
         </CardContent>
       </Card>
 
+      {/* ── Listings Grid ── */}
       {filteredListings.length === 0 ? (
         <Card className="erp-glass-card-subtle">
-          <CardContent className="py-16 text-center text-muted-foreground">
-            <p>No active listings. {canEdit ? 'Create one to get started.' : 'Contact Admin to create listings.'}</p>
+          <CardContent className="py-20 text-center">
+            <Camera className="h-12 w-12 text-sw-green-200 mx-auto mb-4" />
+            <p className="font-semibold text-foreground mb-1">No active listings</p>
+            <p className="text-sm text-muted-foreground">{canEdit ? 'Create one to get started.' : 'Contact Admin to create listings.'}</p>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredListings.map(l => {
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filteredListings.map((l, i) => {
             const photoUrls = parsePhotoUrls(l.photo_url);
             return (
-              <Card key={l.id} className="overflow-hidden erp-glass-card">
+              <Card key={l.id} className={`overflow-hidden erp-glass-card group erp-stagger-${Math.min(i + 1, 7)}`}>
                 <ImageCarousel urls={photoUrls} />
                 <CardContent className="p-5 space-y-3">
+                  {/* Breed + Status */}
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-foreground">{l.cattle?.breed ?? '—'}</span>
+                    <span className="font-bold text-foreground">{l.cattle?.breed ?? '—'}</span>
                     <StatusBadge status="listed" />
                   </div>
-                  <div className="text-xs text-muted-foreground space-y-0.5">
-                    <p className="font-mono">{l.cattle?.cattle_code}</p>
-                    <p>{l.cattle?.teeth} teeth · {l.cattle?.current_weight} kg · {l.cattle?.gender}</p>
-                    <p>{l.stations?.station_name ?? '—'}</p>
-                    <p className="text-[10px]">Listed: {new Date(l.listed_at).toLocaleDateString('en-PK')}</p>
+
+                  {/* Price */}
+                  <p className="text-xl font-bold text-primary">PKR {l.asking_price.toLocaleString()}</p>
+
+                  {/* Details */}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs py-2 border-y border-border/50">
+                    <div>
+                      <span className="text-muted-foreground">Code</span>
+                      <p className="font-mono font-semibold text-foreground">{l.cattle?.cattle_code}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Weight</span>
+                      <p className="font-semibold text-foreground">{l.cattle?.current_weight} kg</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Teeth / Gender</span>
+                      <p className="font-semibold text-foreground">{l.cattle?.teeth}T · {l.cattle?.gender}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Station</span>
+                      <p className="font-semibold text-foreground truncate">{l.stations?.station_name ?? '—'}</p>
+                    </div>
                   </div>
-                  <p className="text-lg font-bold text-primary">PKR {l.asking_price.toLocaleString()}</p>
-                  {l.description && <p className="text-xs text-muted-foreground line-clamp-2">{l.description}</p>}
+
+                  {/* Description */}
+                  {l.description && <p className="text-xs text-muted-foreground line-clamp-2 italic">{l.description}</p>}
+
+                  {/* Listed date */}
+                  <p className="text-[10px] text-muted-foreground/60 font-medium">Listed {new Date(l.listed_at).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+
+                  {/* Actions */}
                   {canEdit && (
-                    <div className="flex gap-1.5 pt-1 border-t border-border">
-                      <Button variant="ghost" size="sm" className="h-8 text-xs gap-1.5 text-primary hover:text-primary hover:bg-primary/10" onClick={() => openEdit(l)}>
-                        <Pencil className="h-3.5 w-3.5" />Edit
+                    <div className="flex gap-1.5 pt-2">
+                      <Button variant="outline" size="sm" className="h-7 text-[11px] gap-1 rounded-full flex-1 border-primary/20 text-primary hover:bg-primary/5" onClick={() => openEdit(l)}>
+                        <Pencil className="h-3 w-3" />Edit
                       </Button>
-                      <Button variant="ghost" size="sm" className="h-8 text-xs gap-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50" onClick={() => setMarkSoldId(l.id)}>
-                        <CheckCircle2 className="h-3.5 w-3.5" />Sold
+                      <Button variant="outline" size="sm" className="h-7 text-[11px] gap-1 rounded-full flex-1 border-emerald-200 text-emerald-600 hover:bg-emerald-50" onClick={() => setMarkSoldId(l.id)}>
+                        <CheckCircle2 className="h-3 w-3" />Sold
                       </Button>
-                      <Button variant="ghost" size="sm" className="h-8 text-xs gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => setRemoveId(l.id)}>
-                        <Trash2 className="h-3.5 w-3.5" />Remove
+                      <Button variant="outline" size="sm" className="h-7 text-[11px] gap-1 rounded-full border-destructive/20 text-destructive hover:bg-destructive/5 px-2.5" onClick={() => setRemoveId(l.id)}>
+                        <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
                   )}
@@ -703,6 +741,19 @@ const MarketplaceManagement = () => {
               {removeSaving && <Loader2 className="h-4 w-4 animate-spin mr-1" />}Remove Listing
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Trust Score Modal */}
+      <Dialog open={trustOpen} onOpenChange={setTrustOpen}>
+        <DialogContent className="max-w-md p-0 border-none bg-transparent shadow-none [&>button]:hidden">
+          <DialogTitle className="sr-only">Farm Trust Score</DialogTitle>
+          <div className="relative group">
+            <button onClick={() => setTrustOpen(false)} className="absolute top-4 right-4 z-50 p-2 bg-white/50 hover:bg-white text-[#050f05]/60 hover:text-destructive rounded-full transition-all shadow-sm backdrop-blur-md opacity-70 group-hover:opacity-100">
+              <X className="h-4 w-4" />
+            </button>
+            <TrustScorePanel trustScore={trustScore} />
+          </div>
         </DialogContent>
       </Dialog>
     </div>

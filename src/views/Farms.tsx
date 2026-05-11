@@ -4,18 +4,21 @@ import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { MapPin, ArrowRight, Building2, Loader2, Search } from 'lucide-react';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import { TrustScoreBadge } from '@/components/marketplace/TrustScore';
+import type { MarketplaceTrustScore } from '@/lib/marketplace-trust';
 
 interface PublicFarm {
   id: string;
   farm_name: string;
   city: string;
   activeListings: number;
+  trust_score?: MarketplaceTrustScore;
 }
 
 const AnimatedSection = ({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) => {
   const { ref, isVisible } = useScrollAnimation();
   return (
-    <div ref={ref} className={`transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{ transitionDelay: `${delay}ms` }}>
+    <div ref={ref} className={`h-full transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{ transitionDelay: `${delay}ms` }}>
       {children}
     </div>
   );
@@ -86,13 +89,13 @@ const Farms = () => {
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-24 text-[#1a2a1a]/60 font-bold text-lg">
-            {farms.length === 0 ? 'No farms with active listings yet. Check back soon.' : 'No farms match your search.'}
+            {farms.length === 0 ? 'No farms registered yet. Check back soon.' : 'No farms match your search.'}
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-10 max-w-7xl mx-auto">
             {filtered.map((farm, i) => (
               <AnimatedSection key={farm.id} delay={i * 80}>
-                <Link href={`/farms/${farm.id}`} className="group relative block bg-[#b2c9ab]/30 backdrop-blur-3xl backdrop-saturate-[1.6] rounded-[3rem] p-12 border border-white/30 shadow-xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] hover:shadow-2xl hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.3)] transition-all duration-500 hover:-translate-y-2 h-full flex flex-col">
+                <Link href={`/farms/${farm.id}`} className="group relative w-full flex-1 bg-[#b2c9ab]/30 backdrop-blur-3xl backdrop-saturate-[1.6] rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-12 border border-white/30 shadow-xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] hover:shadow-2xl hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.3)] transition-all duration-500 hover:-translate-y-2 h-full flex flex-col">
                   {/* Header */}
                   <div className="flex items-center gap-6 mb-10">
                     <div className="w-16 h-16 rounded-[1.25rem] bg-sw-green-100 flex items-center justify-center shadow-lg shadow-sw-green-100/20 group-hover:scale-110 transition-transform duration-500">
@@ -104,6 +107,9 @@ const Farms = () => {
                       </h2>
                       <div className="flex items-center gap-1.5 text-[#050f05]/60 font-extrabold text-xs uppercase tracking-[0.15em] mt-1">
                         <MapPin className="w-4 h-4 text-[#050f05]" strokeWidth={3} /> {farm.city}
+                      </div>
+                      <div className="mt-3">
+                        <TrustScoreBadge trustScore={farm.trust_score} />
                       </div>
                     </div>
                   </div>

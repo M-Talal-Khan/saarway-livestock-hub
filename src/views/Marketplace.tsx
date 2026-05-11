@@ -6,6 +6,8 @@ import { MapPin, Filter, LogIn, Search, ChevronDown, Activity, ArrowRight, X, Lo
 import { useAuth } from '@/context/AuthContext';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import { parsePhotoUrls } from '@/lib/imageUtils';
+import { TrustScoreBadge } from '@/components/marketplace/TrustScore';
+import type { MarketplaceTrustScore } from '@/lib/marketplace-trust';
 
 interface PublicListing {
   id: string;
@@ -13,9 +15,10 @@ interface PublicListing {
   photo_url: string | null;
   description: string | null;
   listed_at: string;
+  trust_score?: MarketplaceTrustScore;
   cattle: { cattle_code: string; breed: string; teeth: number; current_weight: number; gender: string; coat_color: string | null } | null;
   stations: { station_name: string; station_tag: string; city: string } | null;
-  farms: { id: string; farm_name: string; city: string } | null;
+  farms: { id: string; farm_name: string; city: string; is_active?: boolean; onboarded_at?: string | null } | null;
 }
 
 const ListingCardCarousel = ({ photoUrl, breed }: { photoUrl: string | null; breed: string | undefined }) => {
@@ -27,20 +30,21 @@ const ListingCardCarousel = ({ photoUrl, breed }: { photoUrl: string | null; bre
   }
 
   if (urls.length === 1) {
-    return <img src={urls[0]} alt={breed} className="w-full h-full object-cover rounded-3xl" />;
+    return <img src={urls[0]} alt={breed} loading="lazy" className="w-full h-full object-contain rounded-3xl" />;
   }
 
   const prev = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); setIdx(i => (i - 1 + urls.length) % urls.length); };
   const next = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); setIdx(i => (i + 1) % urls.length); };
 
   return (
-    <div className="relative w-full h-full">
-      <img src={urls[idx]} alt={breed} className="w-full h-full object-cover rounded-3xl transition-opacity duration-200" />
+    <div className="relative w-full h-full flex items-center justify-center">
+      <img src={urls[idx]} alt={breed} loading="lazy" className="w-full h-full object-contain rounded-3xl transition-opacity duration-200" />
       <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <ChevronLeft className="h-4 w-4" />
       </button>
       <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <ChevronRight className="h-4 w-4" />
+
       </button>
       <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
         {urls.map((_, i) => (
@@ -65,6 +69,7 @@ const sortOptions = [
   { value: 'price-low', label: 'Price: Low → High' },
   { value: 'price-high', label: 'Price: High → Low' },
   { value: 'weight', label: 'Weight' },
+  { value: 'trust', label: 'Trust Score' },
 ];
 
 const formatPrice = (price: number) => `PKR ${price.toLocaleString()}`;
@@ -117,6 +122,7 @@ const Marketplace = () => {
       case 'price-low': result.sort((a, b) => a.asking_price - b.asking_price); break;
       case 'price-high': result.sort((a, b) => b.asking_price - a.asking_price); break;
       case 'weight': result.sort((a, b) => (b.cattle?.current_weight ?? 0) - (a.cattle?.current_weight ?? 0)); break;
+      case 'trust': result.sort((a, b) => (b.trust_score?.score ?? 0) - (a.trust_score?.score ?? 0)); break;
       default: result.sort((a, b) => new Date(b.listed_at).getTime() - new Date(a.listed_at).getTime());
     }
     return result;
@@ -278,6 +284,9 @@ const Marketplace = () => {
                           </div>
 
                           <h3 className="text-2xl font-black text-[#050f05] mb-2">{formatPrice(listing.asking_price)}</h3>
+                          <div className="mb-4">
+                            <TrustScoreBadge trustScore={listing.trust_score} />
+                          </div>
                           <p className="text-[#1a2a1a]/60 text-sm font-bold mb-6 italic">
                             {listing.cattle?.current_weight} kg · {listing.cattle?.gender} · {listing.cattle?.teeth} teeth
                           </p>
