@@ -211,7 +211,7 @@ export default function AIChatPage() {
       </div>
 
       {/* Chat Container */}
-      <div className="rounded-2xl overflow-hidden shadow-lg erp-slide-up erp-stagger-1"
+      <div className="rounded-2xl overflow-hidden shadow-lg erp-slide-up erp-stagger-1 flex flex-col"
         style={{
           background: 'linear-gradient(180deg, #ffffff 0%, #f0faf0 100%)',
           border: '1px solid #d6f5d6',
@@ -219,7 +219,7 @@ export default function AIChatPage() {
         }}
       >
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4 h-full">
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
               <div className="w-24 h-24 rounded-full flex items-center justify-center mb-6 erp-stagger-2"
