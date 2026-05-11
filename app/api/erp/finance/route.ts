@@ -6,8 +6,8 @@ export async function GET(request: NextRequest) {
   const session = await verifyFarmSession(request);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // Only admin and accounts can see finance
-  if (!["admin", "accounts"].includes(session.role)) {
+  // Admin, Manager, and Accounts Officer can see finance
+  if (!["admin", "manager", "accounts"].includes(session.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

@@ -5,11 +5,14 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { MapPin, Beef, Factory, ArrowRight, Loader2 } from 'lucide-react';
 import { parsePhotoUrls } from '@/lib/imageUtils';
+import { TrustScoreBadge, TrustScorePanel } from '@/components/marketplace/TrustScore';
+import type { MarketplaceTrustScore } from '@/lib/marketplace-trust';
 
 interface FarmDetail {
   id: string;
   farm_name: string;
   city: string;
+  trust_score?: MarketplaceTrustScore;
 }
 
 interface Station {
@@ -82,6 +85,7 @@ const FarmDetail = () => {
           <p className="text-muted-foreground flex items-center gap-1 mb-2">
             <MapPin className="w-4 h-4" /> {farm.city}
           </p>
+          <TrustScoreBadge trustScore={farm.trust_score} />
         </div>
 
         {/* Stats */}
@@ -92,6 +96,10 @@ const FarmDetail = () => {
           <span className="inline-flex items-center gap-1 text-sm bg-secondary text-secondary-foreground px-4 py-2 rounded-full">
             <Beef className="w-4 h-4" /> {listings.length} Active Listing{listings.length !== 1 ? 's' : ''}
           </span>
+        </div>
+
+        <div className="mb-10">
+          <TrustScorePanel trustScore={farm.trust_score} />
         </div>
 
         {/* Stations */}

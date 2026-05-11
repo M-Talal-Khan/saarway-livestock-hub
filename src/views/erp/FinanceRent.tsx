@@ -90,8 +90,8 @@ const FinanceRent = () => {
   const { currentUser, currentStation } = useAuth();
   const token = currentUser?.sessionToken ?? '';
   const role = currentUser?.role ?? '';
-  const canAccess = ['Admin', 'Accounts Officer'].includes(role);
-  const isAdmin = role === 'Admin';
+  const canAccess = ['Admin', 'Manager', 'Accounts Officer'].includes(role);
+  const isAdminOrManager = role === 'Admin' || role === 'Manager';
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [rentDetails, setRentDetails] = useState<RentDetail[]>([]);
@@ -287,7 +287,7 @@ const FinanceRent = () => {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-foreground erp-slide-up">Finance & Rent</h1>
         <div className="flex items-center gap-2">
-          {isAdmin && stations.length > 1 && (
+          {isAdminOrManager && stations.length > 1 && (
             <Select value={stationFilter} onValueChange={setStationFilter}>
               <SelectTrigger className="w-[160px] h-9"><SelectValue placeholder="Station" /></SelectTrigger>
               <SelectContent>
@@ -646,7 +646,7 @@ const FinanceRent = () => {
                 </Select>
               </div>
             </div>
-            {isAdmin && stations.length > 1 && (
+            {isAdminOrManager && stations.length > 1 && (
               <div className="grid grid-cols-4 items-center gap-4">
                 <span className="text-right text-sm font-medium">Station</span>
                 <Select value={expenseForm.stationId || currentStation?.id || stations[0]?.id} onValueChange={(val) => setExpenseForm({ ...expenseForm, stationId: val })}>

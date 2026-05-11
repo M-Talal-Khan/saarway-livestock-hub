@@ -15,14 +15,14 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AuthProvider>
-          <SuperAdminAuthProvider>
+        <SuperAdminAuthProvider>
+          <AuthProvider>
             <Toaster />
             <Sonner />
             <FloatingErpButton />
             {children}
-          </SuperAdminAuthProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </SuperAdminAuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

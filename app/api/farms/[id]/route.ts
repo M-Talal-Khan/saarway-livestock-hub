@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { calculateMarketplaceTrustScore, createTrustHistory } from "@/lib/marketplace-trust";
 
 // Public endpoint — no auth required
 // Returns farm detail with its active listings and stations
@@ -10,7 +11,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const [farmRes, stationsRes, listingsRes] = await Promise.all([
     admin
       .from("farms")
-      .select("id, farm_name, city")
+      .select("id, farm_name, city, is_active, onboarded_at")
       .eq("id", id)
       .eq("is_active", true)
       .single(),
@@ -31,8 +32,19 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ error: "Farm not found" }, { status: 404 });
   }
 
+  const { data: historyRows } = await admin
+    .from("listings")
+    .select("farm_id, status, listing_fee_paid, photo_url, description")
+    .eq("farm_id", id);
+
   return NextResponse.json({
-    farm: farmRes.data,
+    farm: {
+      ...farmRes.data,
+      trust_score: calculateMarketplaceTrustScore({
+        farm: farmRes.data,
+        history: createTrustHistory(historyRows ?? []),
+      }),
+    },
     stations: stationsRes.data ?? [],
     listings: listingsRes.data ?? [],
   });

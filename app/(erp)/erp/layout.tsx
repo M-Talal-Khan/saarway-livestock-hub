@@ -6,6 +6,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { useAuth } from "@/context/AuthContext";
 import ERPSidebar from "@/components/erp/ERPSidebar";
 import ERPTopBar from "@/components/erp/ERPTopBar";
+import ERPChat from "@/components/erp/ERPChat";
 
 export default function ERPLayout({ children }: { children: React.ReactNode }) {
   const { currentUser, stationSelected } = useAuth();
@@ -45,6 +46,7 @@ export default function ERPLayout({ children }: { children: React.ReactNode }) {
           </main>
         </div>
       </div>
+      <ERPChat />
     </SidebarProvider>
   );
 }

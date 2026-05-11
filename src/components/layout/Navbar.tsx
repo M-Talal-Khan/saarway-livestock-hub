@@ -13,14 +13,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-const navLinks = [
-  { to: '/', label: 'Home' },
-  { to: '/about', label: 'About' },
-  { to: '/farms', label: 'Farms' },
-  { to: '/marketplace', label: 'Marketplace' },
-  { to: '/contact', label: 'Contact Us' },
-];
-
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -29,7 +21,15 @@ const Navbar = () => {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Display name: buyer uses Supabase metadata, farm user uses fullName from session
+  const navLinks = [
+    { to: '/', label: 'Home' },
+    { to: '/about', label: 'About' },
+    { to: '/farms', label: 'Farms' },
+    { to: '/marketplace', label: 'Marketplace' },
+    { to: '/forum', label: 'Forum' },
+    { to: '/contact', label: 'Contact Us' },
+  ];
+
   const displayName =
     currentUser?.fullName ??
     buyerUser?.user_metadata?.full_name ??
@@ -69,7 +69,6 @@ const Navbar = () => {
           <span className="text-sw-green-950 font-extrabold tracking-tight">Saarway</span>
         </Link>
 
-        {/* Desktop */}
         <div className="hidden md:flex items-center gap-6">
           {navLinks.map((link) => (
             <Link
@@ -85,7 +84,6 @@ const Navbar = () => {
           ))}
 
           <div className="flex items-center gap-3 ml-2">
-            {/* Register Your Farm CTA */}
             <Link
               href="/register-farm"
               className="text-sm font-bold px-4 py-2 rounded-lg bg-[#16a34a] text-white shadow-md hover:bg-[#15803d] hover:shadow-lg hover:scale-[1.02] transition-all sw-ripple"
@@ -128,13 +126,11 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile toggle */}
         <button className="md:hidden p-1" onClick={() => setMobileOpen(!mobileOpen)}>
           {mobileOpen ? <X className="w-6 h-6 text-sw-green-950" /> : <Menu className="w-6 h-6 text-sw-green-950" />}
         </button>
       </div>
 
-      {/* Mobile menu */}
       {mobileOpen && (
         <div className="md:hidden bg-white border-t border-border px-4 pb-6 pt-2 shadow-xl absolute w-full mt-[1px]">
           {navLinks.map((link) => (
@@ -158,7 +154,7 @@ const Navbar = () => {
             ) : (
               <div className="grid grid-cols-2 gap-2 mt-2">
                 <Link href="/login" className="flex flex-col items-center justify-center gap-2 text-xs font-semibold px-2 py-4 rounded-xl border border-border text-sw-green-900 bg-sw-green-50 hover:bg-sw-green-100">
-                  <User className="w-5 h-5 text-sw-green-600" /> User Login
+                  <User className="w-5 h-5 text-sw-green-600" /> Login
                 </Link>
                 <Link href="/farm-login" className="flex flex-col items-center justify-center gap-2 text-xs font-semibold px-2 py-4 rounded-xl border border-border text-sw-green-900 bg-sw-green-50 hover:bg-sw-green-100">
                   <Factory className="w-5 h-5 text-sw-green-600" /> Farm / Staff

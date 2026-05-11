@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth, AppRole } from '@/context/AuthContext';
 import {
   Home, Beef, Wheat, Syringe, ShoppingCart, Banknote, BarChart3,
-  Store, TrendingUp, Users, Settings, Lock, Bell, ClipboardList
+  Store, TrendingUp, Users, Settings, Lock, Bell, ClipboardList, CloudSun, MessageCircle, Newspaper
 } from 'lucide-react';
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
@@ -29,9 +29,12 @@ const modules: ModuleItem[] = [
   { title: 'Health & Vaccination', icon: Syringe, url: '/erp/health', roles: ['Admin', 'Manager', 'Veterinarian'] },
   { title: 'Buying', icon: ShoppingCart, url: '/erp/buying', roles: ['Admin', 'Manager'] },
   { title: 'Selling', icon: Banknote, url: '/erp/selling', roles: ['Admin', 'Manager'] },
-  { title: 'Finance & Rent', icon: BarChart3, url: '/erp/finance', roles: ['Admin', 'Accounts Officer'] },
+  { title: 'Finance & Rent', icon: BarChart3, url: '/erp/finance', roles: ['Admin', 'Manager', 'Accounts Officer'] },
   { title: 'Marketplace', icon: Store, url: '/erp/marketplace', roles: ['Admin', 'Manager'] },
+  { title: 'Weather Alerts', icon: CloudSun, url: '/erp/weather', roles: ['Admin', 'Manager', 'Veterinarian', 'Accounts Officer', 'Worker'] },
   { title: 'Tasks', icon: ClipboardList, url: '/erp/tasks', roles: ['Admin', 'Manager', 'Veterinarian', 'Accounts Officer', 'Worker'] },
+  { title: 'AI Assistant', icon: MessageCircle, url: '/erp/ai-chat', roles: ['Admin', 'Manager', 'Veterinarian', 'Accounts Officer', 'Worker'] },
+  { title: 'Community Forum', icon: Newspaper, url: '/erp/forum', roles: ['Admin', 'Manager', 'Veterinarian', 'Accounts Officer', 'Worker'] },
   { title: 'Reports', icon: TrendingUp, url: '/erp/reports', roles: ['Admin', 'Manager', 'Veterinarian', 'Accounts Officer'] },
   { title: 'Notifications', icon: Bell, url: '/erp/notifications', roles: ['Admin', 'Manager', 'Veterinarian', 'Accounts Officer', 'Worker'] },
   { title: 'User Management', icon: Users, url: '/erp/users', roles: ['Admin'] },

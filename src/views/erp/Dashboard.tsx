@@ -388,19 +388,18 @@ const Dashboard = () => {
     if (!token) return;
     setLoading(true);
 
-    const [dashRes, finRes] = await Promise.all([
-      fetch('/api/erp/dashboard', { headers: { Authorization: `Bearer ${token}` } }),
-      (role === 'Admin' || role === 'Accounts Officer')
-        ? fetch('/api/erp/finance', { headers: { Authorization: `Bearer ${token}` } })
-        : Promise.resolve(null),
-    ]);
-
+    // Fetch dashboard data (includes cattle, health, finance summary)
+    const dashRes = await fetch('/api/erp/dashboard', { headers: { Authorization: `Bearer ${token}` } });
     const dashData = await dashRes.json();
     if (dashRes.ok) setData(dashData);
 
-    if (finRes?.ok) {
-      const finData = await finRes.json();
-      setTransactions(finData.transactions ?? []);
+    // Fetch finance transactions for charts (Admin, Manager, Accounts Officer)
+    if (['Admin', 'Manager', 'Accounts Officer'].includes(role)) {
+      const finRes = await fetch('/api/erp/finance', { headers: { Authorization: `Bearer ${token}` } });
+      if (finRes.ok) {
+        const finData = await finRes.json();
+        setTransactions(finData.transactions ?? []);
+      }
     }
 
     setLoading(false);

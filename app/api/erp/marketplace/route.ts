@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyFarmSession, stationFilter } from "@/lib/supabase/farm-session";
+import { calculateMarketplaceTrustScore, createTrustHistory } from "@/lib/marketplace-trust";
 
 export async function GET(request: NextRequest) {
   const session = await verifyFarmSession(request);
@@ -17,9 +18,23 @@ export async function GET(request: NextRequest) {
 
   if (sf.station_id) query = query.eq("station_id", sf.station_id);
 
-  const { data, error } = await query;
+  const [{ data, error }, { data: farm }] = await Promise.all([
+    query,
+    admin
+      .from("farms")
+      .select("id, is_active, onboarded_at")
+      .eq("id", session.farm_id)
+      .single(),
+  ]);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ listings: data ?? [] });
+
+  return NextResponse.json({
+    listings: data ?? [],
+    trust_score: calculateMarketplaceTrustScore({
+      farm,
+      history: createTrustHistory(data ?? []),
+    }),
+  });
 }
 
 export async function POST(request: NextRequest) {

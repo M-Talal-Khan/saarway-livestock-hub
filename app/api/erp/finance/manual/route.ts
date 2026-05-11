@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     // Only Admin or Accounts can post manual expenses
-    if (!["admin", "accounts"].includes(session.role)) {
+    if (!["admin", "manager", "accounts"].includes(session.role)) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

@@ -5,7 +5,7 @@ import { verifyFarmSession } from "@/lib/supabase/farm-session";
 export async function GET(request: NextRequest) {
   const session = await verifyFarmSession(request);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!["admin", "accounts"].includes(session.role)) {
+  if (!["admin", "manager", "accounts"].includes(session.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const session = await verifyFarmSession(request);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!["admin", "accounts"].includes(session.role)) {
+  if (!["admin", "manager", "accounts"].includes(session.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
