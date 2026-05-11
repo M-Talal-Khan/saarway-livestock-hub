@@ -1,9 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  /* Preserve trailing slashes to match current routing behavior */
 };
 
 export default nextConfig;
