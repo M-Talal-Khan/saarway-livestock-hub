@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { calculateMarketplaceTrustScore, createTrustHistory, emptyTrustHistory } from "@/lib/marketplace-trust";
 
+export const revalidate = 60; // Cache on Vercel Edge for 60 seconds
+
 // Public endpoint — no auth required
 // Returns all active marketplace listings with cattle + station + farm info
 export async function GET() {
