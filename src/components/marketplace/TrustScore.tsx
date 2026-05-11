@@ -53,7 +53,7 @@ export function TrustScorePanel({ trustScore }: { trustScore?: MarketplaceTrustS
       {/* Decorative background blur */}
       <div className="absolute -top-10 -right-10 w-32 h-32 bg-sw-green-300/20 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="flex flex-wrap items-start justify-between gap-4 relative z-10">
+      <div className="flex flex-wrap items-start justify-between gap-4 relative z-10 pr-8">
         <div className="flex items-start gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm border border-sw-green-100/50">
             <Award className={`h-6 w-6 ${styles.icon}`} />
