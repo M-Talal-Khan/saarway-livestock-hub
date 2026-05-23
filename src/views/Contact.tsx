@@ -38,7 +38,7 @@ const Contact = () => {
       <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-sw-blob" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-sw-blob" style={{ animationDelay: '-5s' }} />
 
-      <div className="container mx-auto px-4 max-w-2xl relative z-10">
+      <div className="mx-auto px-4 max-w-xl relative z-10">
         <div className="text-center mb-10">
           <h1 className="text-3xl font-bold text-sw-green-950 mb-2">Contact Us</h1>
           <p className="text-sw-green-950/70 font-medium">Get in touch with the Saarway team</p>

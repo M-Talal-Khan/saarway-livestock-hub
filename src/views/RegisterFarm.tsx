@@ -41,7 +41,7 @@ const RegisterFarm = () => {
       <main className="min-h-screen sw-mesh-gradient pt-20 relative overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-sw-blob" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-sw-blob" style={{ animationDelay: '-5s' }} />
-        <div className="container mx-auto px-4 max-w-2xl py-32 relative z-10">
+        <div className="mx-auto px-4 max-w-xl py-32 relative z-10">
           <div
             className="sw-glass-premium rounded-[2.5rem] p-12 text-center shadow-3xl"
             style={{ background: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)' }}
@@ -78,7 +78,7 @@ const RegisterFarm = () => {
         </div>
       </section>
 
-      <div className="container mx-auto px-4 max-w-2xl -mt-44 pb-24 relative z-20">
+      <div className="mx-auto px-4 max-w-xl -mt-44 pb-24 relative z-20">
         <form
           onSubmit={handleSubmit}
           className="sw-glass-premium rounded-[2.5rem] p-10 md:p-14 space-y-8 shadow-3xl text-sw-green-950 border-white/50"
